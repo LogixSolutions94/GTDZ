@@ -12,11 +12,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 RUN git clone --depth 1 https://github.com/cdcseacave/VCG.git /opt/vcglib
 
+# MAKE_JOBS limité par défaut : le VPS héberge aussi de la production (Odoo),
+# on ne monopolise pas tous les cœurs pendant la compilation.
+ARG MAKE_JOBS=4
 RUN git clone --depth 1 --branch v2.3.0 https://github.com/cdcseacave/openMVS.git /opt/openmvs/src \
  && mkdir -p /opt/openmvs/build \
  && cd /opt/openmvs/build \
  && cmake ../src -DCMAKE_BUILD_TYPE=Release -DVCG_ROOT=/opt/vcglib \
- && make -j"$(nproc)" \
+ && make -j"${MAKE_JOBS}" \
  && make install \
  && rm -rf /opt/openmvs/build
 

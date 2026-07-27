@@ -9,11 +9,12 @@ REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
 mkdir -p "$REPO_DIR/builds/linux"
 
-echo ">> Export Linux (Godot ${GODOT_VERSION} headless)..."
+echo ">> Export Linux (Godot ${GODOT_VERSION} headless : import puis export)..."
 docker run --rm \
     -v "$REPO_DIR":/repo \
     -w /repo/game \
+    --entrypoint /bin/sh \
     "barichello/godot-ci:${GODOT_VERSION}" \
-    godot --headless --export-release "Linux" /repo/builds/linux/GTDZ.x86_64
+    -c "godot --headless --import && godot --headless --export-release 'Linux' /repo/builds/linux/GTDZ.x86_64"
 
 echo "Build OK : builds/linux/GTDZ.x86_64"
