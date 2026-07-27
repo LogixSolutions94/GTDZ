@@ -1,9 +1,11 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="1_player"]
 [ext_resource type="PackedScene" path="res://assets/generated/alger_centre.glb" id="2_city"]
 [ext_resource type="Script" path="res://scripts/city_materials.gd" id="3_citymat"]
 [ext_resource type="Texture2D" path="res://assets/textures/paving.jpg" id="4_paving"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="5_hud"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/target_dummy.tscn" id="6_dummy"]
 
 [sub_resource type="ProceduralSkyMaterial" id="SkyMat"]
 sky_top_color = Color(0.25, 0.45, 0.72, 1)
@@ -52,6 +54,17 @@ script = ExtResource("3_citymat")
 
 [node name="Player" parent="." instance=ExtResource("1_player")]
 transform = Transform3D(-0.224, 0, 0.974, 0, 1, 0, -0.974, 0, -0.224, 428.2, 1.2, 78.9)
+
+[node name="GameHUD" parent="." instance=ExtResource("5_hud")]
+
+[node name="Dummy1" parent="." instance=ExtResource("6_dummy")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 421, 0, 86)
+
+[node name="Dummy2" parent="." instance=ExtResource("6_dummy")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 417, 0, 72)
+
+[node name="Dummy3" parent="." instance=ExtResource("6_dummy")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 408, 0, 88)
 
 [node name="HUD" type="CanvasLayer" parent="."]
 

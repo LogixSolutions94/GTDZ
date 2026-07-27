@@ -1,0 +1,29 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/systems/target_dummy.gd" id="1_dummy"]
+[ext_resource type="Script" path="res://scripts/systems/health.gd" id="2_health"]
+
+[sub_resource type="CapsuleShape3D" id="DummyShape"]
+height = 1.8
+
+[sub_resource type="CapsuleMesh" id="DummyMesh"]
+height = 1.8
+
+[sub_resource type="StandardMaterial3D" id="DummyMat"]
+albedo_color = Color(0.8, 0.65, 0.15, 1)
+
+[node name="TargetDummy" type="StaticBody3D"]
+script = ExtResource("1_dummy")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+shape = SubResource("DummyShape")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+mesh = SubResource("DummyMesh")
+material_override = SubResource("DummyMat")
+
+[node name="Health" type="Node" parent="."]
+script = ExtResource("2_health")
+max_health = 75.0
