@@ -43,4 +43,19 @@ material = SubResource("GroundMat")
 [node name="AlgerCentre" parent="." instance=ExtResource("2_city")]
 
 [node name="Player" parent="." instance=ExtResource("1_player")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.2, 1.0, 9.3)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 428.2, 1.2, 78.9)
+
+[node name="HUD" type="CanvasLayer" parent="."]
+
+[node name="OsmCredit" type="Label" parent="HUD"]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = -26.0
+offset_right = 420.0
+offset_bottom = -6.0
+grow_vertical = 0
+theme_override_colors/font_color = Color(1, 1, 1, 0.75)
+theme_override_font_sizes/font_size = 13
+text = "© les contributeurs d'OpenStreetMap (ODbL)"

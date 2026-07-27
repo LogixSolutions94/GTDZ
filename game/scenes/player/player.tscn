@@ -15,13 +15,18 @@ script = ExtResource("1_player")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
 shape = SubResource("CapsuleShape")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+[node name="Skin" type="Node3D" parent="."]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Skin"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
 mesh = SubResource("CapsuleMesh")
 
-[node name="SpringArm3D" type="SpringArm3D" parent="."]
+[node name="CameraPivot" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)
-spring_length = 4.0
 
-[node name="Camera3D" type="Camera3D" parent="SpringArm3D"]
+[node name="SpringArm3D" type="SpringArm3D" parent="CameraPivot"]
+spring_length = 4.0
+margin = 0.25
+
+[node name="Camera3D" type="Camera3D" parent="CameraPivot/SpringArm3D"]
 far = 600.0

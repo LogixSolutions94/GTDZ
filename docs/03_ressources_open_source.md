@@ -6,8 +6,9 @@
 
 1. **[gdquest-demos/godot-4-3d-third-person-controller](https://github.com/gdquest-demos/godot-4-3d-third-person-controller)**
    — contrôleur TPS conçu pour être transplanté dans un autre projet, maintenu (2026),
-   Godot 4 natif. Remplacera notre capsule de la phase 0 (animations, caméra, feeling).
-   Licence mixte : code libre GDQuest, assets avec attribution — à vérifier avant usage des assets.
+   Godot 4 natif. **Licence vérifiée le 27/07/2026 : code MIT (réutilisable), mais assets 3D
+   CC-BY-NC-SA (usage commercial INTERDIT)** → on s'inspire du code, on n'utilise PAS leur
+   personnage ni leurs modèles. Personnage : source CC0 à la place (voir game/assets).
 2. **[vvoovv/blosm](https://github.com/vvoovv/blosm)** (ex blender-osm) — import OSM dans
    Blender en quelques clics (bâtiments avec hauteurs, routes avec largeur, terrain).
    Complète/remplace notre script d'extrusion maison pour la géométrie de masse. GPL
