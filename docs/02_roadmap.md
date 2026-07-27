@@ -14,8 +14,11 @@ Pour chaque tâche : **[auto]** = réalisable par Claude (code, scènes, scripts
 - [x] Extraction OSM d'Alger-Centre : 1 559 bâtiments, 1 064 routes → mesh GLB (1,4 × 2 km) **[auto]**
 - [x] Quartier intégré dans Godot avec collisions (`city_test.tscn`), import headless validé sans erreur **[auto]**
 - [ ] Ouvrir le projet dans Godot sur le PC, valider visuellement les contrôles **[manuel]**
-- [ ] Exécuter `install_vps.sh` sur le VPS, lancer un build Linux headless **[manuel, ou donner un accès SSH]**
-- [ ] Créer le repo GitHub et pousser (commit local déjà fait) **[manuel]**
+      (raccourcis « GTDZ - Jouer » et « GTDZ - Editeur Godot » créés sur le bureau le 27/07/2026)
+- [x] VPS installé (27/07/2026) : repo cloné dans `/home/claude-agent/GTDZ`, images Docker
+      godot-ci 4.7.1 + COLMAP en place, **premier build Linux réussi** (`builds/linux/GTDZ.x86_64`, 72 Mo).
+      Image OpenMVS en compilation. Note : le VPS a 8 vCores (pas 12) et héberge Odoo → compilations bridées (nice + 4 cœurs) **[auto]**
+- [x] Repo GitHub public créé et poussé : https://github.com/LogixSolutions94/GTDZ **[auto]**
 
 **Livrable : le jeu se lance sur PC, un build sort du VPS.**
 
