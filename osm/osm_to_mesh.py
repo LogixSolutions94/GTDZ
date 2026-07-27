@@ -51,6 +51,13 @@ CAT_COMMERCIAL = {
 }
 
 
+# Monuments exportés comme nœuds dédiés (matériau photo spécifique côté Godot,
+# remplacement futur par photogrammétrie — voir docs/04_photogrammetrie_landmarks.md).
+LANDMARKS = {
+    376558747: "landmark_grande_poste",  # ACTEL la Grande Poste
+}
+
+
 def building_category(tags: dict) -> str:
     b = tags.get("building", "yes")
     if b in CAT_PUBLIC or "historic" in tags or tags.get("amenity") in ("place_of_worship", "townhall"):
@@ -154,6 +161,13 @@ def main() -> int:
             continue
         try:
             mesh = trimesh.creation.extrude_polygon(polygon, building_height(way["tags"]))
+            if way["id"] in LANDMARKS:
+                mesh.apply_transform(rotation)
+                mesh.visual = trimesh.visual.TextureVisuals(material=make_material(PALETTE[0]))
+                lname = f"{LANDMARKS[way['id']]}-col"
+                scene.add_geometry(mesh, node_name=lname, geom_name=lname)
+                print(f"  {lname} : nœud monument dédié (way {way['id']})")
+                continue
             key = (building_category(way["tags"]), way["id"] % len(PALETTE))
             buckets.setdefault(key, []).append(mesh)
         except Exception:

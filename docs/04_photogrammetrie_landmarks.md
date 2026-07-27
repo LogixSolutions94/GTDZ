@@ -1,4 +1,25 @@
-# Bâtiments emblématiques en haute fidélité (photogrammétrie ciblée)
+# Bâtiments emblématiques : photos libres (Wikimedia Commons) puis photogrammétrie
+
+## Voie A — Photos Wikimedia Commons (SANS déplacement à Alger) ✅ en cours
+
+Wikimedia Commons héberge des photos libres des monuments d'Alger (catégories
+« Grande Poste d'Alger », « Alger Centre », etc.), sous licences CC-BY / CC-BY-SA / PD.
+**Chaque photo doit être vérifiée individuellement** (licence exacte + auteur) et créditée
+dans [CREDITS.md](../CREDITS.md) — l'attribution est une obligation légale de CC-BY(-SA) ;
+les textures dérivées d'une photo CC-BY-SA restent sous CC-BY-SA (noté par fichier).
+
+Mécanique en place :
+1. `osm/osm_to_mesh.py` : dict `LANDMARKS` (way OSM → nœud dédié `landmark_*` dans le GLB,
+   sorti de son lot de couleur). Premier inscrit : la Grande Poste (way 376558747).
+2. `game/scripts/city_materials.gd` : dict `LANDMARK_TEXTURES` (nœud → photo dans
+   `game/assets/textures/landmarks/` + taille de projection en mètres). La photo est
+   projetée sur les façades par le shader (fenêtres procédurales désactivées) ;
+   fallback crépi clair tant que la photo n'est pas installée.
+3. Peu de photos (1-3 angles) → projection de texture (méthode ci-dessus).
+   Beaucoup de photos cohérentes (30+) → tentative photogrammétrie COLMAP sur le VPS
+   (résultats incertains avec des photos internet hétérogènes : focales/époques mêlées).
+
+## Voie B — Photogrammétrie avec photos terrain (plus tard)
 
 *Procédure documentée à l'avance — rien à exécuter tant qu'il n'y a pas de photos.
 Le pipeline COLMAP + OpenMVS est déjà installé et testé sur le VPS.*

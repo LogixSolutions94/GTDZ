@@ -4,9 +4,17 @@ extends Node3D
 ## Si les textures ne sont pas présentes, on garde les couleurs unies du GLB.
 
 const SHADER := preload("res://shaders/building_facade.gdshader")
+const ROAD_SHADER := preload("res://shaders/road.gdshader")
 const TEX_DIR := "res://assets/textures/"
 
 const ROOF_BY_CAT := {"res": "roof_flat.jpg", "com": "roof_flat.jpg", "pub": "roof_tiles.jpg"}
+
+# Monuments : nœud dédié -> photo réelle (Wikimedia Commons, voir CREDITS.md)
+# et taille de projection en mètres (largeur x hauteur de la façade couverte
+# par une répétition de la photo).
+const LANDMARK_TEXTURES := {
+	"landmark_grande_poste": {"file": "landmarks/grande_poste.jpg", "size": Vector2(48.0, 26.0)},
+}
 const TINTS := {
 	"res": [Color(1.0, 1.0, 1.0), Color(0.96, 0.93, 0.87), Color(0.93, 0.89, 0.82)],
 	"com": [Color(0.92, 0.92, 0.9), Color(0.88, 0.86, 0.82), Color(0.95, 0.93, 0.88)],
@@ -38,6 +46,9 @@ func _apply_material(mesh: MeshInstance3D) -> void:
 	if n == "roads":
 		_apply_road_material(mesh)
 		return
+	if n.begins_with("landmark_"):
+		_apply_landmark_material(mesh, n)
+		return
 	if not n.begins_with("b_") or n.length() < 6 or _facades.is_empty():
 		return
 	var cat := n.substr(2, 3)
@@ -63,17 +74,43 @@ func _apply_material(mesh: MeshInstance3D) -> void:
 	mesh.material_override = mat
 
 
-func _apply_road_material(mesh: MeshInstance3D) -> void:
-	var mat := StandardMaterial3D.new()
-	var tex := _load_tex("asphalt.jpg")
-	if tex != null:
-		mat.albedo_texture = tex
-		mat.uv1_triplanar = true
-		mat.uv1_world_triplanar = true
-		mat.uv1_scale = Vector3(0.12, 0.12, 0.12)
+func _apply_landmark_material(mesh: MeshInstance3D, n: String) -> void:
+	var info: Dictionary = LANDMARK_TEXTURES.get(n, {})
+	var photo: Texture2D = _load_tex(info.get("file", "")) if not info.is_empty() else null
+	var mat := ShaderMaterial.new()
+	mat.shader = SHADER
+	if photo != null:
+		# Photo réelle projetée sur les façades : une répétition couvre toute
+		# la façade, pas de fenêtres procédurales par-dessus.
+		mat.set_shader_parameter("facade_tex", photo)
+		mat.set_shader_parameter("facade_size_m", info.get("size", Vector2(40.0, 25.0)))
+		mat.set_shader_parameter("windows_enabled", false)
+		mat.set_shader_parameter("tint", Color(1, 1, 1))
+	elif _plaster != null:
+		mat.set_shader_parameter("facade_tex", _plaster)
+		mat.set_shader_parameter("tint", Color(0.97, 0.94, 0.86))
 	else:
-		mat.albedo_color = Color(0.23, 0.23, 0.25)
-	mat.roughness = 1.0
+		return
+	var roof := _load_tex("roof_flat.jpg")
+	mat.set_shader_parameter("roof_tex", roof if roof != null else mat.get_shader_parameter("facade_tex"))
+	mesh.material_override = mat
+
+
+func _apply_road_material(mesh: MeshInstance3D) -> void:
+	var tex := _load_tex("asphalt.jpg")
+	if tex == null:
+		var fallback := StandardMaterial3D.new()
+		fallback.albedo_color = Color(0.23, 0.23, 0.25)
+		fallback.roughness = 1.0
+		mesh.material_override = fallback
+		return
+	# Shader dédié (projection monde XZ) : le triplanar standard produisait des
+	# stries sur ce mesh (normales dégénérées après fusion des rubans).
+	var mat := ShaderMaterial.new()
+	mat.shader = ROAD_SHADER
+	mat.set_shader_parameter("tex", tex)
+	mat.set_shader_parameter("size_m", 7.0)
+	mat.set_shader_parameter("tint", Color(0.75, 0.75, 0.78))
 	mesh.material_override = mat
 
 

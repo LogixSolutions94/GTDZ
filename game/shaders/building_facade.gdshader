@@ -3,8 +3,8 @@
 // besoin d'UV sur les meshes extrudés depuis OSM). Compatible gl_compatibility.
 shader_type spatial;
 
-uniform sampler2D facade_tex : source_color, filter_linear_mipmap, repeat_enable;
-uniform sampler2D roof_tex : source_color, filter_linear_mipmap, repeat_enable;
+uniform sampler2D facade_tex : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
+uniform sampler2D roof_tex : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
 uniform vec4 tint : source_color = vec4(1.0, 1.0, 1.0, 1.0);
 // Taille en mètres couverte par une répétition de la texture (x = largeur, y = hauteur).
 uniform vec2 facade_size_m = vec2(9.0, 9.0);
@@ -12,9 +12,9 @@ uniform float roof_size_m = 8.0;
 // Fenêtres procédurales (les banques CC0 n'ont pas de façades avec fenêtres :
 // on les dessine par-dessus l'enduit). Grille : un étage = 3 m.
 uniform bool windows_enabled = true;
-uniform vec2 window_cell_m = vec2(2.8, 3.0);
-uniform vec4 window_rect_m = vec4(0.75, 1.05, 2.05, 2.55); // x_min, y_min, x_max, y_max dans la cellule
-uniform vec3 window_color : source_color = vec3(0.16, 0.19, 0.24);
+uniform vec2 window_cell_m = vec2(3.4, 3.0);
+uniform vec4 window_rect_m = vec4(1.1, 1.0, 2.2, 2.4); // x_min, y_min, x_max, y_max dans la cellule
+uniform vec3 window_color : source_color = vec3(0.24, 0.28, 0.34);
 
 varying vec3 world_pos;
 varying vec3 world_normal;
