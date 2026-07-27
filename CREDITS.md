@@ -36,11 +36,23 @@
   CC BY-SA 4.0) sont inventoriées pour usage futur ; détails et attributions dans
   [docs/04_photogrammetrie_landmarks.md](docs/04_photogrammetrie_landmarks.md).
 
+## Code adapté de projets open source
+
+- **bukkbeek — GodotFPS-Template** (MIT) : la logique du véhicule conduisible
+  (`game/scripts/systems/vehicle.gd` — conduite VehicleBody3D, entrée/sortie,
+  caméra embarquée) est adaptée de son `vehicle.gd`.
+  https://github.com/bukkbeek/GodotFPS-Template — merci bukkbeek !
+  (Ses sons proviennent de Pixabay et ne sont pas repris.)
+
 ## Inspirations code (non copié, patterns réimplémentés)
 
 - **GDQuest — godot-4-3d-third-person-controller** (code MIT) : structure caméra
   orbitale / SpringArm / rotation du skin. Leurs assets 3D (CC-BY-NC-SA) ne sont
   **pas** utilisés dans ce projet.
+- **Kenney — Starter Kit FPS** (MIT, assets CC0) : référence pour la structure
+  arme/munitions ; ses sons CC0 sont prévus pour une intégration future.
+- **chafmere — Godot4-FPS-Template** (MIT) : architecture WeaponResource à adopter
+  quand on passera au multi-armes.
 
 ## Moteur
 

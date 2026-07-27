@@ -1,0 +1,110 @@
+[gd_scene load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/systems/vehicle.gd" id="1_vehicle"]
+
+[sub_resource type="StandardMaterial3D" id="BodyMat"]
+albedo_color = Color(0.35, 0.42, 0.3, 1)
+roughness = 0.7
+
+[sub_resource type="StandardMaterial3D" id="WheelMat"]
+albedo_color = Color(0.12, 0.12, 0.12, 1)
+roughness = 0.9
+
+[sub_resource type="BoxShape3D" id="ChassisShape"]
+size = Vector3(1.9, 0.9, 4.2)
+
+[sub_resource type="BoxMesh" id="BodyMesh"]
+size = Vector3(1.9, 0.8, 4)
+
+[sub_resource type="BoxMesh" id="CabinMesh"]
+size = Vector3(1.7, 0.6, 1.8)
+
+[sub_resource type="CylinderMesh" id="WheelMesh"]
+top_radius = 0.35
+bottom_radius = 0.35
+height = 0.26
+
+[sub_resource type="BoxShape3D" id="DoorShape"]
+size = Vector3(4.4, 2.2, 5.6)
+
+[node name="Jeep" type="VehicleBody3D"]
+mass = 800.0
+script = ExtResource("1_vehicle")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0)
+shape = SubResource("ChassisShape")
+
+[node name="Body" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
+mesh = SubResource("BodyMesh")
+material_override = SubResource("BodyMat")
+
+[node name="Cabin" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.4, 0.4)
+mesh = SubResource("CabinMesh")
+material_override = SubResource("BodyMat")
+
+[node name="WheelFL" type="VehicleWheel3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.85, 0.45, -1.35)
+use_as_steering = true
+wheel_radius = 0.35
+suspension_travel = 0.2
+suspension_stiffness = 45.0
+
+[node name="Mesh" type="MeshInstance3D" parent="WheelFL"]
+transform = Transform3D(0, -1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0)
+mesh = SubResource("WheelMesh")
+material_override = SubResource("WheelMat")
+
+[node name="WheelFR" type="VehicleWheel3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.85, 0.45, -1.35)
+use_as_steering = true
+wheel_radius = 0.35
+suspension_travel = 0.2
+suspension_stiffness = 45.0
+
+[node name="Mesh" type="MeshInstance3D" parent="WheelFR"]
+transform = Transform3D(0, -1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0)
+mesh = SubResource("WheelMesh")
+material_override = SubResource("WheelMat")
+
+[node name="WheelRL" type="VehicleWheel3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.85, 0.45, 1.35)
+use_as_traction = true
+wheel_radius = 0.35
+suspension_travel = 0.2
+suspension_stiffness = 45.0
+
+[node name="Mesh" type="MeshInstance3D" parent="WheelRL"]
+transform = Transform3D(0, -1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0)
+mesh = SubResource("WheelMesh")
+material_override = SubResource("WheelMat")
+
+[node name="WheelRR" type="VehicleWheel3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.85, 0.45, 1.35)
+use_as_traction = true
+wheel_radius = 0.35
+suspension_travel = 0.2
+suspension_stiffness = 45.0
+
+[node name="Mesh" type="MeshInstance3D" parent="WheelRR"]
+transform = Transform3D(0, -1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0)
+mesh = SubResource("WheelMesh")
+material_override = SubResource("WheelMat")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.2, 5.5)
+far = 600.0
+
+[node name="PlayerExit" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.8, 0.4, 0)
+
+[node name="DoorArea" type="Area3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="DoorArea"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+shape = SubResource("DoorShape")
+
+[connection signal="body_entered" from="DoorArea" to="." method="_on_door_area_body_entered"]
+[connection signal="body_exited" from="DoorArea" to="." method="_on_door_area_body_exited"]
