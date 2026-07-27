@@ -17,11 +17,40 @@ const SKIN_ROTATION_SPEED := 10.0
 @onready var spring_arm: SpringArm3D = $CameraPivot/SpringArm3D
 @onready var skin: Node3D = $Skin
 
+var _anim: AnimationPlayer = null
+var _anim_idle := &""
+var _anim_walk := &""
+var _anim_run := &""
+var _anim_jump := &""
+
 
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	# La caméra ne doit jamais entrer en collision avec le joueur lui-même.
 	spring_arm.add_excluded_object(get_rid())
+	_setup_animations()
+
+
+func _setup_animations() -> void:
+	_anim = skin.find_child("AnimationPlayer", true, false)
+	if _anim == null:
+		return
+	# Les noms d'animations importés peuvent être préfixés (ex. "Armature|Run") :
+	# on cherche par suffixe pour rester robuste.
+	_anim_idle = _find_animation("idle")
+	_anim_walk = _find_animation("walk")
+	_anim_run = _find_animation("run")
+	_anim_jump = _find_animation("jump")
+	if _anim_idle != &"":
+		_anim.play(_anim_idle)
+
+
+func _find_animation(name_part: String) -> StringName:
+	for anim_name in _anim.get_animation_list():
+		var lower := String(anim_name).to_lower()
+		if lower == name_part or lower.ends_with(name_part) or lower.begins_with(name_part):
+			return anim_name
+	return &""
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -59,3 +88,20 @@ func _physics_process(delta: float) -> void:
 		skin.rotation.y = lerp_angle(skin.rotation.y, target_yaw, SKIN_ROTATION_SPEED * delta)
 
 	move_and_slide()
+	_update_animation()
+
+
+func _update_animation() -> void:
+	if _anim == null:
+		return
+	var target := _anim_idle
+	if not is_on_floor():
+		target = _anim_jump
+	else:
+		var h_speed := Vector2(velocity.x, velocity.z).length()
+		if h_speed > WALK_SPEED + 0.5:
+			target = _anim_run
+		elif h_speed > 0.5:
+			target = _anim_walk
+	if target != &"" and _anim.current_animation != String(target):
+		_anim.play(target, 0.2)
