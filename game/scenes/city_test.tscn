@@ -1,11 +1,13 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="1_player"]
 [ext_resource type="PackedScene" path="res://assets/generated/alger_centre.glb" id="2_city"]
 
 [sub_resource type="ProceduralSkyMaterial" id="SkyMat"]
-sky_horizon_color = Color(0.66, 0.67, 0.68, 1)
-ground_horizon_color = Color(0.66, 0.67, 0.68, 1)
+sky_top_color = Color(0.25, 0.45, 0.72, 1)
+sky_horizon_color = Color(0.74, 0.79, 0.83, 1)
+ground_bottom_color = Color(0.35, 0.33, 0.3, 1)
+ground_horizon_color = Color(0.74, 0.79, 0.83, 1)
 
 [sub_resource type="Sky" id="Sky"]
 sky_material = SubResource("SkyMat")
@@ -13,7 +15,13 @@ sky_material = SubResource("SkyMat")
 [sub_resource type="Environment" id="Env"]
 background_mode = 2
 sky = SubResource("Sky")
-tonemap_mode = 2
+ambient_light_source = 2
+ambient_light_color = Color(0.62, 0.66, 0.71, 1)
+ambient_light_energy = 0.7
+
+[sub_resource type="StandardMaterial3D" id="GroundMat"]
+albedo_color = Color(0.45, 0.43, 0.39, 1)
+roughness = 1.0
 
 [node name="CityTest" type="Node3D"]
 
@@ -21,15 +29,18 @@ tonemap_mode = 2
 environment = SubResource("Env")
 
 [node name="Sun" type="DirectionalLight3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0.642788, 0.766044, 0, -0.766044, 0.642788, 0, 100, 0)
+transform = Transform3D(0.866025, -0.321394, 0.383022, 0, 0.766044, 0.642788, -0.5, -0.55667, 0.663414, 0, 100, 0)
+light_energy = 1.1
 shadow_enabled = true
+directional_shadow_max_distance = 150.0
 
 [node name="Ground" type="CSGBox3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
 use_collision = true
 size = Vector3(3000, 1, 3000)
+material = SubResource("GroundMat")
 
 [node name="AlgerCentre" parent="." instance=ExtResource("2_city")]
 
 [node name="Player" parent="." instance=ExtResource("1_player")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 80, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.2, 1.0, 9.3)

@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
-"""Convertit un extrait Overpass en mesh 3D (GLB) par extrusion des empreintes de bâtiments.
+"""Convertit un extrait Overpass en mesh 3D (GLB) : bâtiments colorés + routes.
 
 Lit osm/data/<quartier>.json (produit par extract_osm.py) et écrit
-osm/data/<quartier>.glb, centré sur le milieu de la zone, en mètres, axe Y vers le haut
-(convention glTF/Godot).
+osm/data/<quartier>.glb, centré sur la zone, en mètres, axe Y vers le haut.
 
-Hauteur des bâtiments : tag OSM `height`, sinon `building:levels` x 3 m, sinon 9 m.
+- Bâtiments : extrusion des empreintes, hauteur = tag `height` ou `building:levels` x 3 m
+  (défaut 9 m). Palette de façades type « Alger la Blanche » (blanc cassé, crème, sable),
+  répartie par bâtiment. Collisions auto via le suffixe de nœud "-col" (convention Godot).
+- Routes : rubans extrudés (6 cm) à partir des ways `highway`, largeur selon le type,
+  couleur asphalte.
+- Affiche un point de spawn suggéré (sur une route proche du centre) en coordonnées Godot.
 
 Usage :
     python osm_to_mesh.py alger_centre
@@ -19,13 +23,36 @@ import sys
 
 import numpy as np
 import trimesh
-from shapely.geometry import Polygon
+from shapely.geometry import LineString, Polygon
+from shapely.ops import unary_union
 
 DATA_DIR = pathlib.Path(__file__).resolve().parent / "data"
 M_PER_DEG_LAT = 110540.0
 DEFAULT_HEIGHT = 9.0
 LEVEL_HEIGHT = 3.0
 MIN_FOOTPRINT_M2 = 4.0
+
+# Palette façades (RGB 0-1) — nuances d'Alger la Blanche.
+PALETTE = [
+    (0.93, 0.90, 0.84),  # blanc cassé
+    (0.89, 0.84, 0.74),  # crème
+    (0.85, 0.78, 0.66),  # sable
+    (0.80, 0.75, 0.68),  # gris chaud
+    (0.87, 0.80, 0.62),  # ocre clair
+]
+ROAD_COLOR = (0.23, 0.23, 0.25)
+ROAD_HEIGHT = 0.06
+
+ROAD_WIDTHS = {
+    "motorway": 12.0, "trunk": 10.0, "primary": 9.0, "secondary": 8.0,
+    "tertiary": 7.0, "residential": 6.0, "unclassified": 6.0,
+    "living_street": 5.0, "pedestrian": 5.0, "service": 4.0,
+}
+SKIP_HIGHWAYS = {
+    "footway", "path", "steps", "cycleway", "track", "corridor",
+    "bridleway", "construction", "proposed", "platform", "elevator",
+}
+SPAWN_ROAD_TYPES = {"primary", "secondary", "tertiary", "residential", "pedestrian"}
 
 
 def building_height(tags: dict) -> float:
@@ -42,6 +69,14 @@ def building_height(tags: dict) -> float:
         except ValueError:
             pass
     return DEFAULT_HEIGHT
+
+
+def make_material(rgb: tuple) -> trimesh.visual.material.PBRMaterial:
+    return trimesh.visual.material.PBRMaterial(
+        baseColorFactor=[rgb[0], rgb[1], rgb[2], 1.0],
+        metallicFactor=0.0,
+        roughnessFactor=0.95,
+    )
 
 
 def main() -> int:
@@ -62,24 +97,32 @@ def main() -> int:
         e for e in elements
         if e.get("type") == "way" and "building" in e.get("tags", {}) and len(e.get("nodes", [])) >= 4
     ]
+    highway_ways = [
+        e for e in elements
+        if e.get("type") == "way" and e.get("tags", {}).get("highway")
+        and e["tags"]["highway"] not in SKIP_HIGHWAYS and len(e.get("nodes", [])) >= 2
+    ]
     if not building_ways:
         print("Aucun bâtiment exploitable dans l'extrait.", file=sys.stderr)
         return 1
 
-    all_lats = [nodes[n][0] for w in building_ways for n in w["nodes"] if n in nodes]
-    all_lons = [nodes[n][1] for w in building_ways for n in w["nodes"] if n in nodes]
-    lat0, lon0 = sum(all_lats) / len(all_lats), sum(all_lons) / len(all_lons)
+    all_coords = [nodes[n] for w in building_ways for n in w["nodes"] if n in nodes]
+    lat0 = sum(c[0] for c in all_coords) / len(all_coords)
+    lon0 = sum(c[1] for c in all_coords) / len(all_coords)
     m_per_deg_lon = 111320.0 * math.cos(math.radians(lat0))
 
-    meshes = []
+    def to_xy(node_id):
+        lat, lon = nodes[node_id]
+        return ((lon - lon0) * m_per_deg_lon, (lat - lat0) * M_PER_DEG_LAT)
+
+    rotation = trimesh.transformations.rotation_matrix(-np.pi / 2, [1, 0, 0])
+    scene = trimesh.Scene()
+
+    # --- Bâtiments, répartis en lots de couleur ---
+    buckets: dict[int, list] = {i: [] for i in range(len(PALETTE))}
     skipped = 0
     for way in building_ways:
-        coords = []
-        for node_id in way["nodes"]:
-            if node_id not in nodes:
-                continue
-            lat, lon = nodes[node_id]
-            coords.append(((lon - lon0) * m_per_deg_lon, (lat - lat0) * M_PER_DEG_LAT))
+        coords = [to_xy(n) for n in way["nodes"] if n in nodes]
         if len(coords) < 4:
             skipped += 1
             continue
@@ -90,29 +133,68 @@ def main() -> int:
             skipped += 1
             continue
         try:
-            meshes.append(trimesh.creation.extrude_polygon(polygon, building_height(way["tags"])))
+            mesh = trimesh.creation.extrude_polygon(polygon, building_height(way["tags"]))
+            buckets[way["id"] % len(PALETTE)].append(mesh)
         except Exception:
             skipped += 1
 
-    if not meshes:
-        print("Aucun mesh généré.", file=sys.stderr)
-        return 1
+    n_buildings = 0
+    for i, meshes in buckets.items():
+        if not meshes:
+            continue
+        n_buildings += len(meshes)
+        combined = trimesh.util.concatenate(meshes)
+        combined.apply_transform(rotation)
+        combined.visual = trimesh.visual.TextureVisuals(material=make_material(PALETTE[i]))
+        scene.add_geometry(combined, node_name=f"buildings_{i}-col", geom_name=f"buildings_{i}-col")
 
-    city = trimesh.util.concatenate(meshes)
-    # trimesh extrude en Z-up ; glTF (et Godot) sont Y-up.
-    city.apply_transform(trimesh.transformations.rotation_matrix(-np.pi / 2, [1, 0, 0]))
+    # --- Routes ---
+    ribbons = []
+    for way in highway_ways:
+        coords = [to_xy(n) for n in way["nodes"] if n in nodes]
+        if len(coords) < 2:
+            continue
+        width = ROAD_WIDTHS.get(way["tags"]["highway"], 5.0)
+        ribbons.append(LineString(coords).buffer(width / 2.0, cap_style=2, join_style=2))
+    n_road_polys = 0
+    if ribbons:
+        merged = unary_union(ribbons)
+        geoms = merged.geoms if merged.geom_type == "MultiPolygon" else [merged]
+        road_meshes = []
+        for geom in geoms:
+            if geom.is_empty or geom.geom_type != "Polygon":
+                continue
+            try:
+                road_meshes.append(trimesh.creation.extrude_polygon(geom, ROAD_HEIGHT))
+                n_road_polys += 1
+            except Exception:
+                pass
+        if road_meshes:
+            roads = trimesh.util.concatenate(road_meshes)
+            roads.apply_transform(rotation)
+            roads.visual = trimesh.visual.TextureVisuals(material=make_material(ROAD_COLOR))
+            scene.add_geometry(roads, node_name="roads", geom_name="roads")
 
-    # Nom de nœud suffixé "-col" : convention d'import Godot qui génère
-    # automatiquement une collision trimesh statique sur ce mesh.
-    scene = trimesh.Scene()
-    scene.add_geometry(city, node_name="buildings-col", geom_name="buildings-col")
+    # --- Spawn suggéré : nœud de route le plus proche du centre ---
+    best = None
+    for way in highway_ways:
+        if way["tags"]["highway"] not in SPAWN_ROAD_TYPES:
+            continue
+        for n in way["nodes"]:
+            if n not in nodes:
+                continue
+            x, y = to_xy(n)
+            d = x * x + y * y
+            if best is None or d < best[0]:
+                best = (d, x, y)
 
     out_path = DATA_DIR / f"{args.district}.glb"
     scene.export(out_path)
-    extent = city.bounds[1] - city.bounds[0]
-    print(f"OK : {len(meshes)} bâtiments extrudés ({skipped} ignorés) -> {out_path}")
-    print(f"Emprise : {extent[0]:.0f} m x {extent[2]:.0f} m, hauteur max {extent[1]:.0f} m")
-    print("Copier le .glb dans game/assets/generated/ puis l'importer dans Godot (voir docs/01_setup.md §7).")
+    print(f"OK : {n_buildings} bâtiments ({skipped} ignorés), {n_road_polys} polygones de route -> {out_path}")
+    if best:
+        # Repère Godot : X = est, Z = -nord (rotation -90° autour de X appliquée au mesh).
+        print(f"Spawn suggéré (Godot) : ({best[1]:.1f}, 1.0, {-best[2]:.1f})")
+    print("Copier le .glb dans game/assets/generated/ puis relancer l'import Godot.")
     return 0
 
 
