@@ -36,6 +36,9 @@ func try_fire(camera: Camera3D) -> void:
 	_cooldown = fire_interval
 	in_mag -= 1
 	ammo_changed.emit(in_mag, reserve)
+	var sound := get_parent().get_node_or_null("ShotSound")
+	if sound:
+		sound.play()
 
 	var center := camera.get_viewport().get_visible_rect().size / 2.0
 	var from := camera.project_ray_origin(center)

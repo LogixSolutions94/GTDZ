@@ -50,7 +50,9 @@
   orbitale / SpringArm / rotation du skin. Leurs assets 3D (CC-BY-NC-SA) ne sont
   **pas** utilisés dans ce projet.
 - **Kenney — Starter Kit FPS** (MIT, assets CC0) : référence pour la structure
-  arme/munitions ; ses sons CC0 sont prévus pour une intégration future.
+  arme/munitions. Les **sons** (`game/assets/sounds/kenney/` : blaster, enemy_attack,
+  enemy_hurt, enemy_destroy, jump_a, land) proviennent de ce kit — **CC0** —
+  https://github.com/KenneyNL/Starter-Kit-FPS / https://kenney.nl — merci Kenney !
 - **chafmere — Godot4-FPS-Template** (MIT) : architecture WeaponResource à adopter
   quand on passera au multi-armes.
 

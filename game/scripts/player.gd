@@ -86,6 +86,9 @@ func _physics_process(delta: float) -> void:
 
 	if Input.is_action_just_pressed("jump") and is_on_floor():
 		velocity.y = JUMP_VELOCITY
+		var jump_sound := get_node_or_null("JumpSound")
+		if jump_sound:
+			jump_sound.play()
 
 	# Tir / visée / rechargement (souris capturée uniquement).
 	if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
