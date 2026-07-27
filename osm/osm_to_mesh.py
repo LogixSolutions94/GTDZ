@@ -32,14 +32,32 @@ DEFAULT_HEIGHT = 9.0
 LEVEL_HEIGHT = 3.0
 MIN_FOOTPRINT_M2 = 4.0
 
-# Palette façades (RGB 0-1) — nuances d'Alger la Blanche.
+# Palette façades (RGB 0-1) — nuances d'Alger la Blanche (fallback si les
+# matériaux à textures ne sont pas appliqués côté Godot).
 PALETTE = [
     (0.93, 0.90, 0.84),  # blanc cassé
     (0.89, 0.84, 0.74),  # crème
     (0.85, 0.78, 0.66),  # sable
-    (0.80, 0.75, 0.68),  # gris chaud
-    (0.87, 0.80, 0.62),  # ocre clair
 ]
+
+# Catégories de bâtiments (tags OSM) -> familles de textures côté Godot.
+CAT_PUBLIC = {
+    "church", "mosque", "cathedral", "chapel", "public", "government", "civic",
+    "school", "university", "college", "hospital", "train_station", "transportation",
+}
+CAT_COMMERCIAL = {
+    "commercial", "retail", "office", "industrial", "warehouse", "supermarket",
+    "hotel", "kiosk",
+}
+
+
+def building_category(tags: dict) -> str:
+    b = tags.get("building", "yes")
+    if b in CAT_PUBLIC or "historic" in tags or tags.get("amenity") in ("place_of_worship", "townhall"):
+        return "pub"
+    if b in CAT_COMMERCIAL or "shop" in tags:
+        return "com"
+    return "res"
 ROAD_COLOR = (0.23, 0.23, 0.25)
 ROAD_HEIGHT = 0.06
 
@@ -118,8 +136,10 @@ def main() -> int:
     rotation = trimesh.transformations.rotation_matrix(-np.pi / 2, [1, 0, 0])
     scene = trimesh.Scene()
 
-    # --- Bâtiments, répartis en lots de couleur ---
-    buckets: dict[int, list] = {i: [] for i in range(len(PALETTE))}
+    # --- Bâtiments, répartis par catégorie OSM x variation ---
+    # Noms de nœuds "b_<cat><var>-col" : la scène Godot s'en sert pour assigner
+    # les matériaux à textures (voir game/scripts/city_materials.gd).
+    buckets: dict[tuple, list] = {}
     skipped = 0
     for way in building_ways:
         coords = [to_xy(n) for n in way["nodes"] if n in nodes]
@@ -134,19 +154,20 @@ def main() -> int:
             continue
         try:
             mesh = trimesh.creation.extrude_polygon(polygon, building_height(way["tags"]))
-            buckets[way["id"] % len(PALETTE)].append(mesh)
+            key = (building_category(way["tags"]), way["id"] % len(PALETTE))
+            buckets.setdefault(key, []).append(mesh)
         except Exception:
             skipped += 1
 
     n_buildings = 0
-    for i, meshes in buckets.items():
-        if not meshes:
-            continue
+    for (cat, var), meshes in sorted(buckets.items()):
         n_buildings += len(meshes)
         combined = trimesh.util.concatenate(meshes)
         combined.apply_transform(rotation)
-        combined.visual = trimesh.visual.TextureVisuals(material=make_material(PALETTE[i]))
-        scene.add_geometry(combined, node_name=f"buildings_{i}-col", geom_name=f"buildings_{i}-col")
+        combined.visual = trimesh.visual.TextureVisuals(material=make_material(PALETTE[var]))
+        name = f"b_{cat}{var}-col"
+        scene.add_geometry(combined, node_name=name, geom_name=name)
+        print(f"  {name} : {len(meshes)} bâtiments")
 
     # --- Routes ---
     ribbons = []
