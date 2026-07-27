@@ -1,0 +1,5 @@
+requests
+numpy
+shapely
+trimesh
+mapbox-earcut

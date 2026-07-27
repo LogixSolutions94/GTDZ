@@ -1,0 +1,28 @@
+# Godot
+game/.godot/
+*.translation
+
+# Builds
+builds/
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Données lourdes (à versionner plus tard via Git LFS si besoin)
+photogrammetry/input/*
+photogrammetry/output/*
+!photogrammetry/input/.gitkeep
+!photogrammetry/output/.gitkeep
+osm/data/*
+!osm/data/.gitkeep
+
+# Blender
+*.blend1
+*.blend2
+
+# Divers
+.DS_Store
+Thumbs.db
+.remember/

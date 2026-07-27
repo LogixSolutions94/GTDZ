@@ -1,0 +1,29 @@
+# GTDZ - Services Docker du VPS.
+# Usage type :
+#   docker compose --profile build run --rm godot-builder
+#   (la photogrammétrie passe plutôt par photogrammetry/scripts/run_photogrammetry.sh,
+#    qui enchaîne les étapes COLMAP puis OpenMVS)
+services:
+  godot-builder:
+    image: barichello/godot-ci:4.7.1
+    profiles: ["build"]
+    volumes:
+      - ../..:/repo
+    working_dir: /repo/game
+    entrypoint: ["godot", "--headless", "--export-release", "Linux", "/repo/builds/linux/GTDZ.x86_64"]
+
+  colmap:
+    image: colmap/colmap:latest
+    profiles: ["photogrammetry"]
+    volumes:
+      - ../../photogrammetry:/data
+    entrypoint: ["colmap"]
+
+  openmvs:
+    image: gtdz/openmvs
+    build:
+      context: .
+      dockerfile: Dockerfile.openmvs
+    profiles: ["photogrammetry"]
+    volumes:
+      - ../../photogrammetry:/data

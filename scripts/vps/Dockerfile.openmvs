@@ -1,0 +1,23 @@
+# Image OpenMVS (CPU) pour la densification, le maillage et le texturing.
+# Compilée une fois par install_vps.sh : docker build -t gtdz/openmvs -f Dockerfile.openmvs .
+FROM ubuntu:22.04
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential cmake git ca-certificates \
+    libboost-iostreams-dev libboost-program-options-dev libboost-system-dev libboost-serialization-dev \
+    libopencv-dev libcgal-dev libcgal-qt5-dev libeigen3-dev \
+    libpng-dev libjpeg-dev libtiff-dev libglu1-mesa-dev \
+ && rm -rf /var/lib/apt/lists/*
+
+RUN git clone --depth 1 https://github.com/cdcseacave/VCG.git /opt/vcglib
+
+RUN git clone --depth 1 --branch v2.3.0 https://github.com/cdcseacave/openMVS.git /opt/openmvs/src \
+ && mkdir -p /opt/openmvs/build \
+ && cd /opt/openmvs/build \
+ && cmake ../src -DCMAKE_BUILD_TYPE=Release -DVCG_ROOT=/opt/vcglib \
+ && make -j"$(nproc)" \
+ && make install \
+ && rm -rf /opt/openmvs/build
+
+WORKDIR /work
