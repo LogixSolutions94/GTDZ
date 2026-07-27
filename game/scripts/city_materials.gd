@@ -23,9 +23,14 @@ func _ready() -> void:
 		if tex != null:
 			_facades.append(tex)
 	_plaster = _load_tex("plaster_01.jpg")
-	for child in get_children():
-		if child is MeshInstance3D:
-			_apply_material(child)
+	# Recherche récursive : l'import GLB peut insérer des nœuds intermédiaires
+	# entre la racine et les MeshInstance3D.
+	var meshes := find_children("*", "MeshInstance3D", true, false)
+	print("[city_materials] %d textures façades, %d MeshInstance3D : %s" % [
+		_facades.size(), meshes.size(),
+		", ".join(meshes.map(func(m): return String(m.name)))])
+	for mesh in meshes:
+		_apply_material(mesh)
 
 
 func _apply_material(mesh: MeshInstance3D) -> void:

@@ -1,5 +1,10 @@
 ; Engine configuration file.
-; Généré pour GTDZ — ne pas éditer à la main sauf nécessité (Godot le réécrit).
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
 
 config_version=5
 
@@ -49,7 +54,5 @@ sprint={
 
 [rendering]
 
-; gl_compatibility : choisi pour la machine de dev actuelle (Intel UHD 620, pas de GPU dédié).
-; Passer à "forward_plus" quand un PC avec GPU dédié sera disponible.
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
