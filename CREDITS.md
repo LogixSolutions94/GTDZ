@@ -24,6 +24,18 @@
   `game/shaders/building_facade.gdshader` (aucune banque CC0 ne propose de façades
   résidentielles avec fenêtres — vérifié sur ambientCG et Poly Haven le 27/07/2026).
 
+## Monuments — photos Wikimedia Commons
+
+- **Grande Poste d'Alger** (`game/assets/textures/landmarks/grande_poste.jpg`) —
+  texture dérivée (recadrage/redimensionnement) de « The Great Post Office.jpg »
+  par **Idir Amokrane**, licence [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/),
+  source : https://commons.wikimedia.org/wiki/File:The_Great_Post_Office.jpg —
+  **la texture dérivée reste sous CC BY-SA 4.0.**
+- Cinq autres photos libres de la Grande Poste (auteurs : Hacen Youcef Moudjahed,
+  Ludovic Courtès, Xiaotong Gao, habib kaki, Chettouh Nabil — licences CC BY 3.0 à
+  CC BY-SA 4.0) sont inventoriées pour usage futur ; détails et attributions dans
+  [docs/04_photogrammetrie_landmarks.md](docs/04_photogrammetrie_landmarks.md).
+
 ## Inspirations code (non copié, patterns réimplémentés)
 
 - **GDQuest — godot-4-3d-third-person-controller** (code MIT) : structure caméra

@@ -25,13 +25,17 @@ void vertex() {
 }
 
 void fragment() {
-	vec3 n = normalize(world_normal);
+	// Normale géométrique exacte par dérivées écran : insensible aux normales
+	// lissées/fusionnées du mesh (source de cisaillement sur les façades).
+	vec3 n = normalize(cross(dFdx(world_pos), dFdy(world_pos)));
 	vec3 col;
 	if (abs(n.y) > 0.6) {
 		col = texture(roof_tex, world_pos.xz / roof_size_m).rgb;
 	} else {
-		// Projection selon l'axe horizontal dominant de la façade.
-		float u = (abs(n.x) > abs(n.z)) ? world_pos.z : world_pos.x;
+		// Coordonnée horizontale alignée sur la tangente du mur : aucune
+		// déformation même sur les façades obliques ou courbes.
+		vec2 nh = normalize(n.xz);
+		float u = dot(world_pos.xz, vec2(nh.y, -nh.x));
 		vec2 uv = vec2(u, -world_pos.y);
 		col = texture(facade_tex, uv / facade_size_m).rgb;
 

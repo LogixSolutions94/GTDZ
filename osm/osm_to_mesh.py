@@ -53,8 +53,9 @@ CAT_COMMERCIAL = {
 
 # Monuments exportés comme nœuds dédiés (matériau photo spécifique côté Godot,
 # remplacement futur par photogrammétrie — voir docs/04_photogrammetrie_landmarks.md).
+# way_id -> (nom de nœud, hauteur forcée en mètres ou None pour les tags OSM)
 LANDMARKS = {
-    376558747: "landmark_grande_poste",  # ACTEL la Grande Poste
+    376558747: ("landmark_grande_poste", 24.0),  # Grande Poste (~24 m réels)
 }
 
 
@@ -160,14 +161,18 @@ def main() -> int:
             skipped += 1
             continue
         try:
-            mesh = trimesh.creation.extrude_polygon(polygon, building_height(way["tags"]))
             if way["id"] in LANDMARKS:
+                lm_name, lm_height = LANDMARKS[way["id"]]
+                height = lm_height if lm_height else building_height(way["tags"])
+                mesh = trimesh.creation.extrude_polygon(polygon, height)
+                mesh.unmerge_vertices()  # normales plates (éclairage et shaders corrects)
                 mesh.apply_transform(rotation)
                 mesh.visual = trimesh.visual.TextureVisuals(material=make_material(PALETTE[0]))
-                lname = f"{LANDMARKS[way['id']]}-col"
+                lname = f"{lm_name}-col"
                 scene.add_geometry(mesh, node_name=lname, geom_name=lname)
-                print(f"  {lname} : nœud monument dédié (way {way['id']})")
+                print(f"  {lname} : nœud monument dédié (way {way['id']}, h={height} m)")
                 continue
+            mesh = trimesh.creation.extrude_polygon(polygon, building_height(way["tags"]))
             key = (building_category(way["tags"]), way["id"] % len(PALETTE))
             buckets.setdefault(key, []).append(mesh)
         except Exception:
@@ -177,6 +182,7 @@ def main() -> int:
     for (cat, var), meshes in sorted(buckets.items()):
         n_buildings += len(meshes)
         combined = trimesh.util.concatenate(meshes)
+        combined.unmerge_vertices()  # normales plates
         combined.apply_transform(rotation)
         combined.visual = trimesh.visual.TextureVisuals(material=make_material(PALETTE[var]))
         name = f"b_{cat}{var}-col"

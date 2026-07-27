@@ -19,6 +19,22 @@ Mécanique en place :
    Beaucoup de photos cohérentes (30+) → tentative photogrammétrie COLMAP sur le VPS
    (résultats incertains avec des photos internet hétérogènes : focales/époques mêlées).
 
+## Inventaire Wikimedia Commons (réalisé le 27/07/2026)
+
+| Monument | Photos ext. exploitables | Licences dominantes | Verdict |
+|---|---|---|---|
+| Grande Poste | ~18 | CC BY-SA 4.0 / CC BY 3.0 | ✅ Projection cylindrique **faite** (photo Idir Amokrane) |
+| Cathédrale Sacré-Cœur | ~20 (série cohérente R. Hamatou) | CC BY-SA 4.0 | Projection + modélisation simple (cône béton) |
+| Mosquée Ketchaoua | ~50 (série Hamatou 4284×5712) | CC BY-SA 4.0 / PD | Meilleur candidat pour un ESSAI photogrammétrie (attentes basses) |
+| Djamaa el Djedid | ~40 (+29 PD historiques) | PD / CC BY-SA | Projection |
+| Théâtre national | 3-4 modernes HR seulement | CC BY 4.0 (B. Gagnon) | Projection façade unique |
+| Bd Zighout Youcef | ~6 | CC BY-SA mixte | Référence d'ambiance |
+
+Verdict global : photos internet trop hétérogènes pour de la photogrammétrie fiable
+(focales/époques/foules mélangées) → **projection de texture** pour les monuments,
+photogrammétrie réservée aux futures photos terrain. Métadonnées complètes (TSV par
+catégorie) conservées côté outils.
+
 ## Voie B — Photogrammétrie avec photos terrain (plus tard)
 
 *Procédure documentée à l'avance — rien à exécuter tant qu'il n'y a pas de photos.

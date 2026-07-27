@@ -5,6 +5,7 @@ extends Node3D
 
 const SHADER := preload("res://shaders/building_facade.gdshader")
 const ROAD_SHADER := preload("res://shaders/road.gdshader")
+const LANDMARK_SHADER := preload("res://shaders/landmark_photo.gdshader")
 const TEX_DIR := "res://assets/textures/"
 
 const ROOF_BY_CAT := {"res": "roof_flat.jpg", "com": "roof_flat.jpg", "pub": "roof_tiles.jpg"}
@@ -13,7 +14,13 @@ const ROOF_BY_CAT := {"res": "roof_flat.jpg", "com": "roof_flat.jpg", "pub": "ro
 # et taille de projection en mètres (largeur x hauteur de la façade couverte
 # par une répétition de la photo).
 const LANDMARK_TEXTURES := {
-	"landmark_grande_poste": {"file": "landmarks/grande_poste.jpg", "size": Vector2(48.0, 26.0)},
+	"landmark_grande_poste": {
+		"file": "landmarks/grande_poste.jpg",
+		"size": Vector2(46.0, 23.7),
+		"center": Vector2(410.8, 82.9),
+		"radius": 26.0,
+		"angle_offset": -0.91,
+	},
 }
 const TINTS := {
 	"res": [Color(1.0, 1.0, 1.0), Color(0.96, 0.93, 0.87), Color(0.93, 0.89, 0.82)],
@@ -77,23 +84,25 @@ func _apply_material(mesh: MeshInstance3D) -> void:
 func _apply_landmark_material(mesh: MeshInstance3D, n: String) -> void:
 	var info: Dictionary = LANDMARK_TEXTURES.get(n, {})
 	var photo: Texture2D = _load_tex(info.get("file", "")) if not info.is_empty() else null
-	var mat := ShaderMaterial.new()
-	mat.shader = SHADER
+	var roof := _load_tex("roof_flat.jpg")
 	if photo != null:
-		# Photo réelle projetée sur les façades : une répétition couvre toute
-		# la façade, pas de fenêtres procédurales par-dessus.
-		mat.set_shader_parameter("facade_tex", photo)
-		mat.set_shader_parameter("facade_size_m", info.get("size", Vector2(40.0, 25.0)))
-		mat.set_shader_parameter("windows_enabled", false)
-		mat.set_shader_parameter("tint", Color(1, 1, 1))
+		# Photo réelle enroulée autour du bâtiment (projection cylindrique).
+		var mat := ShaderMaterial.new()
+		mat.shader = LANDMARK_SHADER
+		mat.set_shader_parameter("photo", photo)
+		mat.set_shader_parameter("photo_size_m", info.get("size", Vector2(40.0, 25.0)))
+		mat.set_shader_parameter("center_xz", info.get("center", Vector2.ZERO))
+		mat.set_shader_parameter("radius_m", info.get("radius", 25.0))
+		mat.set_shader_parameter("angle_offset", info.get("angle_offset", 0.0))
+		mat.set_shader_parameter("roof_tex", roof if roof != null else photo)
+		mesh.material_override = mat
 	elif _plaster != null:
+		var mat := ShaderMaterial.new()
+		mat.shader = SHADER
 		mat.set_shader_parameter("facade_tex", _plaster)
 		mat.set_shader_parameter("tint", Color(0.97, 0.94, 0.86))
-	else:
-		return
-	var roof := _load_tex("roof_flat.jpg")
-	mat.set_shader_parameter("roof_tex", roof if roof != null else mat.get_shader_parameter("facade_tex"))
-	mesh.material_override = mat
+		mat.set_shader_parameter("roof_tex", roof if roof != null else _plaster)
+		mesh.material_override = mat
 
 
 func _apply_road_material(mesh: MeshInstance3D) -> void:
