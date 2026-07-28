@@ -40,6 +40,14 @@
   CC BY-SA 4.0) sont inventoriées pour usage futur ; détails et attributions dans
   [docs/04_photogrammetrie_landmarks.md](docs/04_photogrammetrie_landmarks.md).
 
+## Ciel
+
+- **Poly Haven** — HDRI « Kloofendal 48d Partly Cloudy (Pure Sky) »
+  (`game/assets/textures/sky/`), licence [CC0](https://polyhaven.com/license).
+  https://polyhaven.com — merci Poly Haven !
+- Les cartes de relief (`*_n.jpg`) proviennent des mêmes assets ambientCG CC0
+  que les textures couleur.
+
 ## Props urbains 3D (`game/assets/props/`)
 
 - **Kenney** — City Kit Commercial, City Kit Roads, Retro Urban Kit, Survival Kit :

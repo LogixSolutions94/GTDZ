@@ -5,6 +5,9 @@ shader_type spatial;
 
 uniform sampler2D facade_tex : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
 uniform sampler2D roof_tex : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
+uniform sampler2D facade_normal : hint_normal, filter_linear_mipmap_anisotropic, repeat_enable;
+uniform sampler2D roof_normal : hint_normal, filter_linear_mipmap_anisotropic, repeat_enable;
+uniform float normal_strength = 0.0; // 0 = pas de normal map fournie
 uniform vec4 tint : source_color = vec4(1.0, 1.0, 1.0, 1.0);
 // Taille en mètres couverte par une répétition de la texture (x = largeur, y = hauteur).
 uniform vec2 facade_size_m = vec2(9.0, 9.0);
@@ -29,8 +32,15 @@ void fragment() {
 	// lissées/fusionnées du mesh (source de cisaillement sur les façades).
 	vec3 n = normalize(cross(dFdx(world_pos), dFdy(world_pos)));
 	vec3 col;
-	if (abs(n.y) > 0.6) {
+	vec3 tangent_ws;
+	vec3 bitangent_ws;
+	vec2 nm_uv;
+	bool is_roof = abs(n.y) > 0.6;
+	if (is_roof) {
 		col = texture(roof_tex, world_pos.xz / roof_size_m).rgb;
+		tangent_ws = vec3(1.0, 0.0, 0.0);
+		bitangent_ws = vec3(0.0, 0.0, 1.0);
+		nm_uv = world_pos.xz / roof_size_m;
 	} else {
 		// Coordonnée horizontale alignée sur la tangente du mur : aucune
 		// déformation même sur les façades obliques ou courbes.
@@ -38,6 +48,9 @@ void fragment() {
 		float u = dot(world_pos.xz, vec2(nh.y, -nh.x));
 		vec2 uv = vec2(u, -world_pos.y);
 		col = texture(facade_tex, uv / facade_size_m).rgb;
+		tangent_ws = vec3(nh.y, 0.0, -nh.x);
+		bitangent_ws = vec3(0.0, -1.0, 0.0);
+		nm_uv = uv / facade_size_m;
 
 		// Rez-de-chaussée commerçant : plus sombre et légèrement chaud (0-3.2 m).
 		if (world_pos.y < 3.2) {
@@ -67,6 +80,18 @@ void fragment() {
 		}
 	}
 	ALBEDO = col * tint.rgb;
+	if (normal_strength > 0.01) {
+		vec3 nm_rgb;
+		if (is_roof) {
+			nm_rgb = texture(roof_normal, nm_uv).rgb;
+		} else {
+			nm_rgb = texture(facade_normal, nm_uv).rgb;
+		}
+		vec3 nm = nm_rgb * 2.0 - 1.0;
+		nm.xy *= normal_strength;
+		vec3 perturbed = normalize(tangent_ws * nm.x + bitangent_ws * nm.y + n * nm.z);
+		NORMAL = normalize((VIEW_MATRIX * vec4(perturbed, 0.0)).xyz);
+	}
 	ROUGHNESS = 0.95;
 	METALLIC = 0.0;
 }

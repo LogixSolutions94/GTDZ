@@ -74,20 +74,32 @@ func _apply_material(mesh: MeshInstance3D) -> void:
 		return
 
 	var facade: Texture2D
+	var facade_file: String
 	match cat:
 		"com":
+			facade_file = "facade_res_%02d.jpg" % (((variant + 1) % _facades.size()) + 1)
 			facade = _facades[(variant + 1) % _facades.size()]
 		"pub":
+			facade_file = "plaster_01.jpg" if _plaster != null else "facade_res_%02d.jpg" % ((variant % _facades.size()) + 1)
 			facade = _plaster if _plaster != null else _facades[variant % _facades.size()]
 		_:
+			facade_file = "facade_res_%02d.jpg" % ((variant % _facades.size()) + 1)
 			facade = _facades[variant % _facades.size()]
-	var roof := _load_tex(ROOF_BY_CAT.get(cat, "roof_flat.jpg"))
+	var roof_file: String = ROOF_BY_CAT.get(cat, "roof_flat.jpg")
+	var roof := _load_tex(roof_file)
 
 	var mat := ShaderMaterial.new()
 	mat.shader = SHADER
 	mat.set_shader_parameter("facade_tex", facade)
 	mat.set_shader_parameter("roof_tex", roof if roof != null else facade)
 	mat.set_shader_parameter("tint", TINTS[cat][variant])
+	# Normal maps (relief) si présentes : <nom>_n.jpg à côté de la couleur.
+	var facade_n := _load_tex(facade_file.replace(".jpg", "_n.jpg"))
+	var roof_n := _load_tex(roof_file.replace(".jpg", "_n.jpg"))
+	if facade_n != null:
+		mat.set_shader_parameter("facade_normal", facade_n)
+		mat.set_shader_parameter("roof_normal", roof_n if roof_n != null else facade_n)
+		mat.set_shader_parameter("normal_strength", 0.8)
 	mesh.material_override = mat
 
 
@@ -134,6 +146,10 @@ func _apply_flat_material(mesh: MeshInstance3D, tex_file: String, size_m: float,
 	mat.set_shader_parameter("tex", tex)
 	mat.set_shader_parameter("size_m", size_m)
 	mat.set_shader_parameter("tint", tint)
+	var normal_tex := _load_tex(tex_file.replace(".jpg", "_n.jpg"))
+	if normal_tex != null:
+		mat.set_shader_parameter("normal_tex", normal_tex)
+		mat.set_shader_parameter("normal_strength", 0.7)
 	mesh.material_override = mat
 
 
