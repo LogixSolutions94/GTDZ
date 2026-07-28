@@ -59,6 +59,7 @@ func _ready() -> void:
 	health.changed.connect(func(c: float, mx: float): health_changed.emit(c, mx))
 	health.died.connect(_on_died)
 	_setup_animations()
+	_apply_outfit()
 	if Game.pending_invincibility:
 		Game.pending_invincibility = false
 		_start_invincibility(3.0)
@@ -168,6 +169,29 @@ func _physics_process(delta: float) -> void:
 
 	move_and_slide()
 	_update_animation()
+
+
+## Tenue du héros : gi orange et pantalon bleu profond (hommage original,
+## recoloration des matériaux du modèle CC0 — aucun asset sous copyright).
+func _apply_outfit() -> void:
+	for mesh_node in skin.find_children("*", "MeshInstance3D", true, false):
+		var mesh_inst := mesh_node as MeshInstance3D
+		if mesh_inst.mesh == null:
+			continue
+		for s in mesh_inst.mesh.get_surface_count():
+			var mat := mesh_inst.get_active_material(s) as StandardMaterial3D
+			if mat == null:
+				continue
+			var c := mat.albedo_color
+			var new_color := Color(-1, 0, 0)
+			if c.b > c.r and c.b > 0.45:
+				new_color = Color(0.95, 0.45, 0.08)  # chemise -> gi orange
+			elif c.r > 0.55 and c.g > 0.4 and c.b < c.g:
+				new_color = Color(0.16, 0.22, 0.55)  # short -> bleu profond
+			if new_color.r >= 0.0:
+				var dup := mat.duplicate() as StandardMaterial3D
+				dup.albedo_color = new_color
+				mesh_inst.set_surface_override_material(s, dup)
 
 
 func _select_weapon(weapon: HitscanWeapon) -> void:
