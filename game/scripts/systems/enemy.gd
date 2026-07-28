@@ -174,6 +174,7 @@ func _face(point: Vector3, delta: float) -> void:
 
 
 func _on_died() -> void:
+	Game.add_score(10)
 	set_physics_process(false)
 	collision.set_deferred("disabled", true)
 	var death := get_node_or_null("DeathSound")

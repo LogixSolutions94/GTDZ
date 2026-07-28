@@ -9,8 +9,15 @@ extends CanvasLayer
 @onready var retry_button: Button = $GameOverPanel/Center/RetryButton
 
 
+@onready var score_label: Label = $Score
+@onready var wave_label: Label = $Wave
+
+
 func _ready() -> void:
 	Game.game_over_triggered.connect(_on_game_over)
+	Game.score_changed.connect(func(s: int): score_label.text = "Score : %d" % s)
+	Game.wave_changed.connect(_on_wave_changed)
+	score_label.text = "Score : %d" % Game.score
 	retry_button.pressed.connect(Game.restart)
 	var player := get_tree().get_first_node_in_group("player")
 	if player == null:
@@ -35,6 +42,10 @@ func _on_game_over(final_score: int, final_wave: int) -> void:
 	final_score_label.text = "Score final : %d" % final_score
 	final_wave_label.text = "Vague atteinte : %d" % final_wave
 	game_over_panel.visible = true
+
+
+func _on_wave_changed(wave: int) -> void:
+	wave_label.text = "Vague %d" % wave if wave > 0 else ""
 
 
 func _on_ammo_changed(in_mag: int, reserve: int) -> void:
