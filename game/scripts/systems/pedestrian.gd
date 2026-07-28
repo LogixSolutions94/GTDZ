@@ -47,7 +47,8 @@ func _physics_process(delta: float) -> void:
 			dir = dir.normalized()
 			velocity.x = dir.x * walk_speed
 			velocity.z = dir.z * walk_speed
-			skin.rotation.y = lerp_angle(skin.rotation.y, atan2(dir.x, dir.z), 6.0 * delta)
+			# Le modèle Quaternius regarde vers -Z (même correction que le joueur).
+			skin.rotation.y = lerp_angle(skin.rotation.y, atan2(-dir.x, -dir.z), 6.0 * delta)
 			_play(_anim_walk)
 	move_and_slide()
 
