@@ -5,6 +5,8 @@ extends Node
 ## (Kenney Starter Kit FPS, MIT), réécrite pour une caméra 3e personne.
 
 signal ammo_changed(in_mag: int, reserve: int)
+signal fired
+signal hit_confirmed
 
 @export var damage := 25.0
 @export var fire_interval := 0.13
@@ -39,6 +41,7 @@ func try_fire(camera: Camera3D) -> void:
 	var sound := get_parent().get_node_or_null("ShotSound")
 	if sound:
 		sound.play()
+	fired.emit()
 
 	var center := camera.get_viewport().get_visible_rect().size / 2.0
 	var from := camera.project_ray_origin(center)
@@ -57,6 +60,12 @@ func try_fire(camera: Camera3D) -> void:
 	var target: Object = hit.collider
 	if target is Node and target.has_node("Health"):
 		target.get_node("Health").take_damage(damage)
+		hit_confirmed.emit()
+
+
+func add_reserve(amount: int) -> void:
+	reserve += amount
+	ammo_changed.emit(in_mag, reserve)
 
 
 func reload() -> void:

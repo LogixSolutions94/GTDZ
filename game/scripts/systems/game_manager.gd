@@ -41,4 +41,5 @@ func restart() -> void:
 	score = 0
 	wave = 0
 	pending_invincibility = true
+	get_tree().paused = false
 	get_tree().reload_current_scene()

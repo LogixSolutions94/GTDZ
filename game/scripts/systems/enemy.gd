@@ -7,6 +7,9 @@ extends CharacterBody3D
 
 enum State { PATROL, CHASE, ATTACK }
 
+const AMMO_PICKUP := preload("res://scenes/items/ammo_pickup.tscn")
+const AMMO_DROP_CHANCE := 0.4
+
 @export var patrol_offsets: Array[Vector3] = [Vector3(10, 0, 0), Vector3(10, 0, 8), Vector3(0, 0, 8)]
 @export var patrol_speed := 2.5
 @export var chase_speed := 4.5
@@ -176,6 +179,10 @@ func _face(point: Vector3, delta: float) -> void:
 
 func _on_died() -> void:
 	Game.add_score(10)
+	if randf() < AMMO_DROP_CHANCE:
+		var pickup := AMMO_PICKUP.instantiate()
+		get_tree().current_scene.add_child(pickup)
+		pickup.global_position = global_position + Vector3.UP * 0.1
 	set_physics_process(false)
 	collision.set_deferred("disabled", true)
 	var death := get_node_or_null("DeathSound")

@@ -42,6 +42,8 @@ func _ready() -> void:
 	# La caméra ne doit jamais entrer en collision avec le joueur lui-même.
 	spring_arm.add_excluded_object(get_rid())
 	weapon.ammo_changed.connect(func(m: int, r: int): ammo_changed.emit(m, r))
+	# Léger recul vertical à chaque tir (feel).
+	weapon.fired.connect(func(): spring_arm.rotation.x = clampf(spring_arm.rotation.x + 0.011, PITCH_MIN, PITCH_MAX))
 	health.changed.connect(func(c: float, mx: float): health_changed.emit(c, mx))
 	health.died.connect(_on_died)
 	_setup_animations()
@@ -99,11 +101,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		camera_pivot.rotate_y(-event.relative.x * MOUSE_SENSITIVITY)
 		spring_arm.rotate_x(-event.relative.y * MOUSE_SENSITIVITY)
 		spring_arm.rotation.x = clampf(spring_arm.rotation.x, PITCH_MIN, PITCH_MAX)
-	elif event.is_action_pressed("ui_cancel"):
-		if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-		else:
-			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	# Échap est géré par le menu pause (HUD).
 
 
 func _physics_process(delta: float) -> void:
