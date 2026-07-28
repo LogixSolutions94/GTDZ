@@ -68,6 +68,9 @@ def building_category(tags: dict) -> str:
     return "res"
 ROAD_COLOR = (0.23, 0.23, 0.25)
 ROAD_HEIGHT = 0.06
+SIDEWALK_COLOR = (0.62, 0.60, 0.56)
+SIDEWALK_HEIGHT = 0.14
+SIDEWALK_EXTRA = 2.2  # largeur du trottoir de chaque côté de la chaussée
 
 ROAD_WIDTHS = {
     "motorway": 12.0, "trunk": 10.0, "primary": 9.0, "secondary": 8.0,
@@ -148,6 +151,7 @@ def main() -> int:
     # Noms de nœuds "b_<cat><var>-col" : la scène Godot s'en sert pour assigner
     # les matériaux à textures (voir game/scripts/city_materials.gd).
     buckets: dict[tuple, list] = {}
+    building_polys: list = []
     skipped = 0
     for way in building_ways:
         coords = [to_xy(n) for n in way["nodes"] if n in nodes]
@@ -160,6 +164,7 @@ def main() -> int:
         if polygon.is_empty or polygon.area < MIN_FOOTPRINT_M2 or polygon.geom_type != "Polygon":
             skipped += 1
             continue
+        building_polys.append(polygon)
         try:
             if way["id"] in LANDMARKS:
                 lm_name, lm_height = LANDMARKS[way["id"]]
@@ -189,32 +194,48 @@ def main() -> int:
         scene.add_geometry(combined, node_name=name, geom_name=name)
         print(f"  {name} : {len(meshes)} bâtiments")
 
-    # --- Routes ---
+    # --- Routes + trottoirs ---
     ribbons = []
+    walk_ribbons = []
     for way in highway_ways:
         coords = [to_xy(n) for n in way["nodes"] if n in nodes]
         if len(coords) < 2:
             continue
         width = ROAD_WIDTHS.get(way["tags"]["highway"], 5.0)
-        ribbons.append(LineString(coords).buffer(width / 2.0, cap_style=2, join_style=2))
-    n_road_polys = 0
-    if ribbons:
-        merged = unary_union(ribbons)
-        geoms = merged.geoms if merged.geom_type == "MultiPolygon" else [merged]
-        road_meshes = []
+        line = LineString(coords)
+        ribbons.append(line.buffer(width / 2.0, cap_style=2, join_style=2))
+        walk_ribbons.append(line.buffer(width / 2.0 + SIDEWALK_EXTRA, cap_style=2, join_style=2))
+
+    def polys_to_node(geometry, height: float, color: tuple, node: str) -> int:
+        geoms = geometry.geoms if hasattr(geometry, "geoms") else [geometry]
+        meshes_out = []
         for geom in geoms:
             if geom.is_empty or geom.geom_type != "Polygon":
                 continue
             try:
-                road_meshes.append(trimesh.creation.extrude_polygon(geom, ROAD_HEIGHT))
-                n_road_polys += 1
+                meshes_out.append(trimesh.creation.extrude_polygon(geom, height))
             except Exception:
                 pass
-        if road_meshes:
-            roads = trimesh.util.concatenate(road_meshes)
-            roads.apply_transform(rotation)
-            roads.visual = trimesh.visual.TextureVisuals(material=make_material(ROAD_COLOR))
-            scene.add_geometry(roads, node_name="roads", geom_name="roads")
+        if not meshes_out:
+            return 0
+        combined_out = trimesh.util.concatenate(meshes_out)
+        combined_out.unmerge_vertices()
+        combined_out.apply_transform(rotation)
+        combined_out.visual = trimesh.visual.TextureVisuals(material=make_material(color))
+        scene.add_geometry(combined_out, node_name=node, geom_name=node)
+        return len(meshes_out)
+
+    n_road_polys = 0
+    if ribbons:
+        roads_union = unary_union(ribbons)
+        n_road_polys = polys_to_node(roads_union, ROAD_HEIGHT, ROAD_COLOR, "roads")
+        # Trottoirs : ruban élargi moins la chaussée, moins l'emprise des bâtiments.
+        # Le suffixe -col donne les bordures physiques et alimente le navmesh.
+        sidewalks = unary_union(walk_ribbons).difference(roads_union)
+        if building_polys:
+            sidewalks = sidewalks.difference(unary_union(building_polys))
+        n_walk = polys_to_node(sidewalks.simplify(0.05), SIDEWALK_HEIGHT, SIDEWALK_COLOR, "sidewalks-col")
+        print(f"  trottoirs : {n_walk} polygones")
 
     # --- Spawn suggéré : nœud de route le plus proche du centre ---
     best = None

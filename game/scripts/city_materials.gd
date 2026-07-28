@@ -53,6 +53,9 @@ func _apply_material(mesh: MeshInstance3D) -> void:
 	if n == "roads":
 		_apply_road_material(mesh)
 		return
+	if n == "sidewalks":
+		_apply_flat_material(mesh, "paving.jpg", 3.0, Color(0.95, 0.93, 0.9), Color(0.62, 0.6, 0.56))
+		return
 	if n.begins_with("landmark_"):
 		_apply_landmark_material(mesh, n)
 		return
@@ -106,20 +109,24 @@ func _apply_landmark_material(mesh: MeshInstance3D, n: String) -> void:
 
 
 func _apply_road_material(mesh: MeshInstance3D) -> void:
-	var tex := _load_tex("asphalt.jpg")
+	_apply_flat_material(mesh, "asphalt.jpg", 7.0, Color(0.75, 0.75, 0.78), Color(0.23, 0.23, 0.25))
+
+
+## Matériau sol en projection monde XZ (routes, trottoirs) avec repli couleur unie.
+func _apply_flat_material(mesh: MeshInstance3D, tex_file: String, size_m: float,
+		tint: Color, fallback_color: Color) -> void:
+	var tex := _load_tex(tex_file)
 	if tex == null:
 		var fallback := StandardMaterial3D.new()
-		fallback.albedo_color = Color(0.23, 0.23, 0.25)
+		fallback.albedo_color = fallback_color
 		fallback.roughness = 1.0
 		mesh.material_override = fallback
 		return
-	# Shader dédié (projection monde XZ) : le triplanar standard produisait des
-	# stries sur ce mesh (normales dégénérées après fusion des rubans).
 	var mat := ShaderMaterial.new()
 	mat.shader = ROAD_SHADER
 	mat.set_shader_parameter("tex", tex)
-	mat.set_shader_parameter("size_m", 7.0)
-	mat.set_shader_parameter("tint", Color(0.75, 0.75, 0.78))
+	mat.set_shader_parameter("size_m", size_m)
+	mat.set_shader_parameter("tint", tint)
 	mesh.material_override = mat
 
 
