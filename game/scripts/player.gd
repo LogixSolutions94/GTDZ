@@ -43,7 +43,15 @@ func _ready() -> void:
 	spring_arm.add_excluded_object(get_rid())
 	weapon.ammo_changed.connect(func(m: int, r: int): ammo_changed.emit(m, r))
 	health.changed.connect(func(c: float, mx: float): health_changed.emit(c, mx))
+	health.died.connect(_on_died)
 	_setup_animations()
+
+
+func _on_died() -> void:
+	# Gel complet des contrôles ; l'écran de game over prend la main (HUD).
+	set_physics_process(false)
+	set_process_unhandled_input(false)
+	Game.trigger_game_over()
 
 
 func _setup_animations() -> void:

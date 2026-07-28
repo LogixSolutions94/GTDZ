@@ -49,6 +49,11 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	if health.current <= 0.0 or _player == null:
 		return
+	# Pendant l'écran de game over, l'IA se fige (pas de tir sur un joueur mort).
+	if Game.state != Game.GameState.PLAYING:
+		velocity.x = 0.0
+		velocity.z = 0.0
+		return
 	if not is_on_floor():
 		velocity += get_gravity() * delta
 	_attack_cooldown = maxf(0.0, _attack_cooldown - delta)

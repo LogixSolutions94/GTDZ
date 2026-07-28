@@ -17,6 +17,7 @@ config/features=PackedStringArray("4.7")
 [autoload]
 
 DebugScreenshot="*res://scripts/debug_screenshot.gd"
+Game="*res://scripts/systems/game_manager.gd"
 
 [display]
 
