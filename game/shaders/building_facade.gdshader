@@ -39,7 +39,10 @@ void fragment() {
 		vec2 uv = vec2(u, -world_pos.y);
 		col = texture(facade_tex, uv / facade_size_m).rgb;
 
-		if (windows_enabled && world_pos.y > 0.4) {
+		// Rez-de-chaussée commerçant : plus sombre et légèrement chaud (0-3.2 m).
+		if (world_pos.y < 3.2) {
+			col *= vec3(0.82, 0.79, 0.75);
+		} else if (windows_enabled) {
 			vec2 cell = vec2(mod(u, window_cell_m.x), mod(world_pos.y, window_cell_m.y));
 			bool in_window = cell.x > window_rect_m.x && cell.x < window_rect_m.z
 				&& cell.y > window_rect_m.y && cell.y < window_rect_m.w;
@@ -48,7 +51,19 @@ void fragment() {
 				bool in_frame = cell.x < window_rect_m.x + 0.12 || cell.x > window_rect_m.z - 0.12
 					|| cell.y < window_rect_m.y + 0.12 || cell.y > window_rect_m.w - 0.12;
 				col = in_frame ? col * 1.08 : window_color;
+			} else if (cell.y < window_rect_m.y && cell.y > window_rect_m.y - 0.1) {
+				// Fine ombre d'appui sous la fenêtre.
+				col *= 0.86;
 			}
+			// Bandeau de corniche à chaque étage (bande claire de 18 cm).
+			float floor_pos = mod(world_pos.y, window_cell_m.y);
+			if (floor_pos < 0.18) {
+				col = mix(col, col * 1.14 + vec3(0.04), 0.8);
+			}
+		}
+		// Salissure légère en pied de mur (remontées d'humidité, très Alger).
+		if (world_pos.y < 0.5) {
+			col *= mix(0.78, 1.0, world_pos.y * 2.0);
 		}
 	}
 	ALBEDO = col * tint.rgb;
