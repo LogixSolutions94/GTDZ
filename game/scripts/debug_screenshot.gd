@@ -8,6 +8,7 @@ var _path := ""
 var _wait := 45
 var _frame := 0
 var _kill_player_at := -1
+var _restart_at := -1
 var _add_score := 0
 
 
@@ -19,9 +20,11 @@ func _ready() -> void:
 			_wait = int(arg.get_slice("=", 1))
 		elif arg.begins_with("--kill-player="):
 			_kill_player_at = int(arg.get_slice("=", 1))
+		elif arg.begins_with("--restart-at="):
+			_restart_at = int(arg.get_slice("=", 1))
 		elif arg.begins_with("--add-score="):
 			_add_score = int(arg.get_slice("=", 1))
-	if _path == "" and _kill_player_at < 0 and _add_score == 0:
+	if _path == "" and _kill_player_at < 0 and _add_score == 0 and _restart_at < 0:
 		set_process(false)
 
 
@@ -35,6 +38,9 @@ func _process(_delta: float) -> void:
 		if player:
 			player.get_node("Health").take_damage(9999.0)
 			print("[debug] joueur tué (test game over)")
+	if _frame == _restart_at:
+		print("[debug] redémarrage (test respawn)")
+		Game.restart()
 	if _path != "" and _frame >= _wait:
 		var img := get_viewport().get_texture().get_image()
 		img.save_png(_path)

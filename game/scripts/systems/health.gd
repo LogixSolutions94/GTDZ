@@ -7,6 +7,8 @@ signal changed(current: float, max_health: float)
 signal died
 
 @export var max_health := 100.0
+## Ignore tous les dégâts tant que vrai (invincibilité temporaire post-respawn).
+var invulnerable := false
 
 var current: float
 
@@ -16,7 +18,7 @@ func _ready() -> void:
 
 
 func take_damage(amount: float) -> void:
-	if current <= 0.0:
+	if current <= 0.0 or invulnerable:
 		return
 	current = maxf(0.0, current - amount)
 	changed.emit(current, max_health)

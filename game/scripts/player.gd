@@ -45,6 +45,24 @@ func _ready() -> void:
 	health.changed.connect(func(c: float, mx: float): health_changed.emit(c, mx))
 	health.died.connect(_on_died)
 	_setup_animations()
+	if Game.pending_invincibility:
+		Game.pending_invincibility = false
+		_start_invincibility(3.0)
+
+
+func _start_invincibility(duration: float) -> void:
+	print("[player] invincibilité post-respawn %.1f s" % duration)
+	health.invulnerable = true
+	var blinks := int(duration / 0.3)
+	var tween := create_tween()
+	for i in blinks:
+		tween.tween_callback(func(): skin.visible = false)
+		tween.tween_interval(0.15)
+		tween.tween_callback(func(): skin.visible = true)
+		tween.tween_interval(0.15)
+	tween.tween_callback(func():
+		health.invulnerable = false
+		skin.visible = true)
 
 
 func _on_died() -> void:

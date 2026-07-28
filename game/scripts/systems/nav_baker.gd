@@ -7,4 +7,7 @@ extends NavigationRegion3D
 
 func _ready() -> void:
 	bake_finished.connect(func(): print("[nav] navmesh prêt (%d polygones)" % navigation_mesh.get_polygon_count()))
-	call_deferred("bake_navigation_mesh")
+	# Au redémarrage de partie, la ressource partagée peut encore être en cours
+	# de bake (async) : dans ce cas le résultat du bake précédent s'appliquera.
+	if not is_baking():
+		call_deferred("bake_navigation_mesh")
