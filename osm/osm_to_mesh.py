@@ -72,6 +72,12 @@ ROAD_HEIGHT = 0.06
 SIDEWALK_COLOR = (0.62, 0.60, 0.56)
 SIDEWALK_HEIGHT = 0.14
 SIDEWALK_EXTRA = 2.2  # largeur du trottoir de chaque côté de la chaussée
+PARK_COLOR = (0.34, 0.47, 0.26)
+PARK_HEIGHT = 0.08
+TRUNK_COLOR = (0.38, 0.27, 0.18)
+FOLIAGE_COLOR = (0.25, 0.42, 0.2)
+TREE_DENSITY_M2 = 150.0  # ~1 arbre pour 150 m² de parc
+MAX_TREES = 450
 
 ROAD_WIDTHS = {
     "motorway": 12.0, "trunk": 10.0, "primary": 9.0, "secondary": 8.0,
@@ -225,6 +231,61 @@ def main() -> int:
         combined_out.visual = trimesh.visual.TextureVisuals(material=make_material(color))
         scene.add_geometry(combined_out, node_name=node, geom_name=node)
         return len(meshes_out)
+
+    # --- Parcs et jardins publics + arbres ---
+    park_ways = [
+        e for e in elements
+        if e.get("type") == "way" and len(e.get("nodes", [])) >= 4
+        and (e.get("tags", {}).get("leisure") in ("park", "garden", "pitch", "playground")
+             or e.get("tags", {}).get("landuse") in ("grass", "forest", "recreation_ground", "village_green"))
+    ]
+    park_polys = []
+    for way in park_ways:
+        coords = [to_xy(n) for n in way["nodes"] if n in nodes]
+        if len(coords) < 4:
+            continue
+        poly = Polygon(coords)
+        if not poly.is_valid:
+            poly = poly.buffer(0)
+        if not poly.is_empty and poly.area > 30.0:
+            park_polys.append(poly)
+    if park_polys:
+        import random
+        random.seed(42)  # arbres reproductibles d'une génération à l'autre
+        parks_union = unary_union(park_polys)
+        n_parks = polys_to_node(parks_union, PARK_HEIGHT, PARK_COLOR, "parks")
+        trunks, foliages = [], []
+        total_trees = 0
+        for poly in park_polys:
+            if total_trees >= MAX_TREES:
+                break
+            want = min(int(poly.area / TREE_DENSITY_M2) + 1, 60)
+            minx, miny, maxx, maxy = poly.bounds
+            placed = 0
+            for _ in range(want * 12):
+                if placed >= want or total_trees >= MAX_TREES:
+                    break
+                from shapely.geometry import Point
+                p = Point(random.uniform(minx, maxx), random.uniform(miny, maxy))
+                if not poly.contains(p):
+                    continue
+                trunk = trimesh.creation.cylinder(radius=0.15, height=2.4, sections=6)
+                trunk.apply_translation((p.x, p.y, 1.2))
+                trunks.append(trunk)
+                foliage = trimesh.creation.icosphere(subdivisions=1, radius=1.35)
+                foliage.apply_scale((1.0, 1.0, 1.25))
+                foliage.apply_translation((p.x, p.y, 3.3))
+                foliages.append(foliage)
+                placed += 1
+                total_trees += 1
+        if trunks:
+            for meshes_list, color, node in ((trunks, TRUNK_COLOR, "tree_trunks-col"), (foliages, FOLIAGE_COLOR, "tree_foliage")):
+                combined = trimesh.util.concatenate(meshes_list)
+                combined.unmerge_vertices()
+                combined.apply_transform(rotation)
+                combined.visual = trimesh.visual.TextureVisuals(material=make_material(color))
+                scene.add_geometry(combined, node_name=node, geom_name=node)
+        print(f"  parcs : {n_parks} zones vertes, {total_trees} arbres")
 
     n_road_polys = 0
     if ribbons:

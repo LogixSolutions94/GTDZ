@@ -63,6 +63,8 @@ func _apply_material(mesh: MeshInstance3D) -> void:
 	if n == "sidewalks":
 		_apply_flat_material(mesh, "paving.jpg", 3.0, Color(0.95, 0.93, 0.9), Color(0.62, 0.6, 0.56))
 		return
+	if n == "parks" or n == "tree_trunks" or n == "tree_foliage":
+		return  # couleurs du GLB (pelouse, bois, feuillage) déjà correctes
 	if n.begins_with("landmark_"):
 		_apply_landmark_material(mesh, n)
 		return

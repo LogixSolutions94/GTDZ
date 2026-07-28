@@ -43,6 +43,8 @@ QUERY_TEMPLATE = """
   way["building"]({bbox});
   relation["building"]({bbox});
   way["highway"]({bbox});
+  way["leisure"~"park|garden|pitch|playground"]({bbox});
+  way["landuse"~"grass|forest|recreation_ground|village_green"]({bbox});
 );
 out body;
 >;
