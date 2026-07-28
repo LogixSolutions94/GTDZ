@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="GTDZ - Alger City Game"
-run/main_scene="res://scenes/city_test.tscn"
+run/main_scene="res://scenes/ui/main_menu.tscn"
 config/features=PackedStringArray("4.7")
 
 [autoload]

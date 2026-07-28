@@ -12,6 +12,7 @@ var _restart_at := -1
 var _kill_enemies_at := -1
 var _add_score := 0
 var _cam_yaw_deg := 0.0
+var _autoplay := false
 
 
 func _ready() -> void:
@@ -30,6 +31,8 @@ func _ready() -> void:
 			_add_score = int(arg.get_slice("=", 1))
 		elif arg.begins_with("--cam-yaw="):
 			_cam_yaw_deg = float(arg.get_slice("=", 1))
+		elif arg == "--play":
+			_autoplay = true
 	if _path == "" and _kill_player_at < 0 and _add_score == 0 and _restart_at < 0 \
 			and _kill_enemies_at < 0:
 		set_process(false)
@@ -37,6 +40,9 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	_frame += 1
+	if _frame == 2 and _autoplay:
+		Game.state = Game.GameState.PLAYING
+		get_tree().change_scene_to_file("res://scenes/city_test.tscn")
 	if _frame == 5 and _cam_yaw_deg != 0.0:
 		var player := get_tree().get_first_node_in_group("player")
 		if player:
