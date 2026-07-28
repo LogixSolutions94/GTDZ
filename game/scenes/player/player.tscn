@@ -1,7 +1,9 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://scripts/player.gd" id="1_player"]
 [ext_resource type="PackedScene" path="res://assets/characters/quaternius/Casual_Male.gltf" id="2_skin"]
+[ext_resource type="PackedScene" path="res://assets/weapons/quaternius/ak47.glb" id="7_ak"]
+[ext_resource type="PackedScene" path="res://assets/weapons/quaternius/smg.glb" id="8_smg"]
 [ext_resource type="Script" path="res://scripts/systems/hitscan_weapon.gd" id="3_weapon"]
 [ext_resource type="Script" path="res://scripts/systems/health.gd" id="4_health"]
 [ext_resource type="AudioStream" path="res://assets/sounds/kenney/blaster.ogg" id="5_shot"]
@@ -54,7 +56,15 @@ shape = SubResource("CapsuleShape")
 [node name="CasualMale" parent="Skin" instance=ExtResource("2_skin")]
 
 [node name="WeaponMount" type="Node3D" parent="Skin"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.28, 0.62, 0.3)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.3, 0.6, -0.28)
+
+[node name="AK47" parent="Skin/WeaponMount" instance=ExtResource("7_ak")]
+visible = false
+transform = Transform3D(0, 0, -0.8, 0, 0.8, 0, 0.8, 0, 0, 0, 0, 0)
+
+[node name="SMG" parent="Skin/WeaponMount" instance=ExtResource("8_smg")]
+visible = false
+transform = Transform3D(0, 0, -0.2, 0, 0.2, 0, 0.2, 0, 0, 0, 0, 0)
 
 [node name="CameraPivot" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)

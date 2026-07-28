@@ -6,6 +6,12 @@
   © les contributeurs d'OpenStreetMap, licence [ODbL](https://opendatacommons.org/licenses/odbl/).
   Mention affichée en permanence dans le jeu (HUD).
 
+## Armes 3D (`game/assets/weapons/quaternius/`)
+
+- **Quaternius — Ultimate Guns Pack** : AK-47 et SMG low-poly.
+  Licence [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/)
+  (preuves : pages Poly Pizza et quaternius.com, License.txt dans le dossier).
+
 ## Personnages 3D
 
 - **Quaternius — Ultimate Animated Character Pack** (`game/assets/characters/quaternius/`)

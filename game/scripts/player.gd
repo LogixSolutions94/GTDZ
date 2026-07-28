@@ -161,7 +161,9 @@ func _physics_process(delta: float) -> void:
 	velocity.z = move_toward(velocity.z, target.z, ACCELERATION * delta * speed)
 
 	if direction.length_squared() > 0.001:
-		var target_yaw := atan2(direction.x, direction.z)
+		# Le modèle Quaternius regarde vers -Z : on aligne sa face (et non son dos)
+		# sur la direction de déplacement.
+		var target_yaw := atan2(-direction.x, -direction.z)
 		skin.rotation.y = lerp_angle(skin.rotation.y, target_yaw, SKIN_ROTATION_SPEED * delta)
 
 	move_and_slide()
