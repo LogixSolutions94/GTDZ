@@ -33,6 +33,7 @@ var _los_timer := 0.0
 
 
 func _ready() -> void:
+	add_to_group("enemies")
 	_patrol_targets.append(global_position)
 	for offset in patrol_offsets:
 		_patrol_targets.append(global_position + offset)
