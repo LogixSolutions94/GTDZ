@@ -33,10 +33,14 @@ func _ready() -> void:
 	player.ammo_changed.connect(_on_ammo_changed)
 	player.health_changed.connect(_on_health_changed)
 	# État initial (le joueur est prêt avant le HUD dans l'ordre de la scène).
-	var weapon: HitscanWeapon = player.get_node_or_null("Weapon")
-	if weapon:
-		_on_ammo_changed(weapon.in_mag, weapon.reserve)
-		weapon.hit_confirmed.connect(_flash_crosshair)
+	player.weapon_changed.connect(_on_weapon_changed)
+	player.aim_changed.connect(_on_aim_changed)
+	for weapon_path in ["WeaponAK", "WeaponSMG"]:
+		var weapon: HitscanWeapon = player.get_node_or_null(weapon_path)
+		if weapon:
+			weapon.hit_confirmed.connect(_flash_crosshair)
+	# Départ arme rangée : pas de viseur ni de compteur.
+	_on_weapon_changed("", 0, 0)
 	var health: Health = player.get_node_or_null("Health")
 	if health:
 		_on_health_changed(health.current, health.max_health)
@@ -63,6 +67,22 @@ func _on_game_over(final_score: int, final_wave: int) -> void:
 
 func _on_wave_changed(wave: int) -> void:
 	wave_label.text = "Vague %d" % wave if wave > 0 else ""
+
+
+func _on_weapon_changed(weapon_name: String, in_mag: int, reserve: int) -> void:
+	var armed := weapon_name != ""
+	$Crosshair.visible = armed
+	ammo_label.visible = armed
+	$WeaponName.visible = armed
+	if armed:
+		$WeaponName.text = weapon_name
+		_on_ammo_changed(in_mag, reserve)
+
+
+func _on_aim_changed(aiming: bool) -> void:
+	var crosshair: Label = $Crosshair
+	crosshair.text = "+" if aiming else "·"
+	crosshair.add_theme_font_size_override("font_size", 30 if aiming else 34)
 
 
 func _flash_crosshair() -> void:

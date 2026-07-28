@@ -13,8 +13,26 @@ height = 1.8
 [node name="Player" type="CharacterBody3D"]
 script = ExtResource("1_player")
 
-[node name="Weapon" type="Node" parent="."]
+[node name="WeaponAK" type="Node" parent="."]
 script = ExtResource("3_weapon")
+weapon_name = "AK-47"
+damage = 34.0
+fire_interval = 0.11
+mag_size = 30
+reserve = 90
+spread_deg = 1.1
+recoil = 0.018
+
+[node name="WeaponSMG" type="Node" parent="."]
+script = ExtResource("3_weapon")
+weapon_name = "SMG"
+damage = 16.0
+fire_interval = 0.065
+mag_size = 32
+reserve = 128
+spread_deg = 1.6
+recoil = 0.007
+reload_time = 0.9
 
 [node name="Health" type="Node" parent="."]
 script = ExtResource("4_health")
@@ -34,6 +52,9 @@ shape = SubResource("CapsuleShape")
 [node name="Skin" type="Node3D" parent="."]
 
 [node name="CasualMale" parent="Skin" instance=ExtResource("2_skin")]
+
+[node name="WeaponMount" type="Node3D" parent="Skin"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.28, 0.62, 0.3)
 
 [node name="CameraPivot" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)

@@ -8,11 +8,16 @@ signal ammo_changed(in_mag: int, reserve: int)
 signal fired
 signal hit_confirmed
 
+@export var weapon_name := "AK-47"
 @export var damage := 25.0
 @export var fire_interval := 0.13
 @export var mag_size := 30
 @export var reserve := 120
 @export var spread_deg := 0.6
+## Multiplicateur de dispersion en visée épaule (clic droit).
+@export var aim_spread_factor := 0.35
+## Recul vertical par tir (radians), appliqué par le joueur.
+@export var recoil := 0.011
 @export var max_range := 400.0
 @export var reload_time := 1.2
 
@@ -29,7 +34,7 @@ func _process(delta: float) -> void:
 	_cooldown = maxf(0.0, _cooldown - delta)
 
 
-func try_fire(camera: Camera3D) -> void:
+func try_fire(camera: Camera3D, aiming := false) -> void:
 	if _cooldown > 0.0 or _reloading:
 		return
 	if in_mag <= 0:
@@ -43,11 +48,12 @@ func try_fire(camera: Camera3D) -> void:
 		sound.play()
 	fired.emit()
 
+	var spread := spread_deg * (aim_spread_factor if aiming else 1.0)
 	var center := camera.get_viewport().get_visible_rect().size / 2.0
 	var from := camera.project_ray_origin(center)
 	var dir := camera.project_ray_normal(center)
-	dir = dir.rotated(camera.global_basis.y, deg_to_rad(randf_range(-spread_deg, spread_deg)))
-	dir = dir.rotated(camera.global_basis.x, deg_to_rad(randf_range(-spread_deg, spread_deg)))
+	dir = dir.rotated(camera.global_basis.y, deg_to_rad(randf_range(-spread, spread)))
+	dir = dir.rotated(camera.global_basis.x, deg_to_rad(randf_range(-spread, spread)))
 
 	var query := PhysicsRayQueryParameters3D.create(from, from + dir * max_range)
 	var body := get_parent() as CollisionObject3D

@@ -15,7 +15,6 @@ func _process(delta: float) -> void:
 func _on_body_entered(body: Node3D) -> void:
 	if not body.is_in_group("player"):
 		return
-	var weapon: HitscanWeapon = body.get_node_or_null("Weapon")
-	if weapon:
-		weapon.add_reserve(amount)
+	if body.has_method("add_ammo"):
+		body.add_ammo(amount)
 	queue_free()

@@ -6,6 +6,8 @@ extends CharacterBody3D
 
 signal ammo_changed(in_mag: int, reserve: int)
 signal health_changed(current: float, max_health: float)
+signal weapon_changed(weapon_name: String, in_mag: int, reserve: int)
+signal aim_changed(aiming: bool)
 
 const WALK_SPEED := 5.0
 const SPRINT_SPEED := 9.0
@@ -26,8 +28,13 @@ const AIM_LERP := 10.0
 @onready var spring_arm: SpringArm3D = $CameraPivot/SpringArm3D
 @onready var camera: Camera3D = $CameraPivot/SpringArm3D/Camera3D
 @onready var skin: Node3D = $Skin
-@onready var weapon: HitscanWeapon = $Weapon
+@onready var weapon_ak: HitscanWeapon = $WeaponAK
+@onready var weapon_smg: HitscanWeapon = $WeaponSMG
 @onready var health: Health = $Health
+
+## Arme en main (null = rangée : pas de viseur, pas de tir).
+var current_weapon: HitscanWeapon = null
+var _aiming := false
 
 var _anim: AnimationPlayer = null
 var _anim_idle := &""
@@ -41,9 +48,14 @@ func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	# La caméra ne doit jamais entrer en collision avec le joueur lui-même.
 	spring_arm.add_excluded_object(get_rid())
-	weapon.ammo_changed.connect(func(m: int, r: int): ammo_changed.emit(m, r))
-	# Léger recul vertical à chaque tir (feel).
-	weapon.fired.connect(func(): spring_arm.rotation.x = clampf(spring_arm.rotation.x + 0.011, PITCH_MIN, PITCH_MAX))
+	for w in [weapon_ak, weapon_smg]:
+		var weapon := w as HitscanWeapon
+		weapon.ammo_changed.connect(func(m: int, r: int):
+			if weapon == current_weapon:
+				ammo_changed.emit(m, r))
+		# Recul vertical propre à chaque arme (feel).
+		weapon.fired.connect(func():
+			spring_arm.rotation.x = clampf(spring_arm.rotation.x + weapon.recoil, PITCH_MIN, PITCH_MAX))
 	health.changed.connect(func(c: float, mx: float): health_changed.emit(c, mx))
 	health.died.connect(_on_died)
 	_setup_animations()
@@ -114,15 +126,28 @@ func _physics_process(delta: float) -> void:
 		if jump_sound:
 			jump_sound.play()
 
-	# Tir / visée / rechargement (souris capturée uniquement).
-	if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+	# Sélection d'arme : 1 = AK-47, 2 = SMG, H = ranger.
+	if Input.is_action_just_pressed("weapon_1"):
+		_select_weapon(weapon_ak)
+	elif Input.is_action_just_pressed("weapon_2"):
+		_select_weapon(weapon_smg)
+	elif Input.is_action_just_pressed("holster"):
+		_select_weapon(null)
+
+	# Tir / visée / rechargement : uniquement arme en main et souris capturée.
+	var armed := current_weapon != null
+	if armed and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		if Input.is_action_pressed("shoot"):
-			weapon.try_fire(camera)
+			current_weapon.try_fire(camera, _aiming)
 		if Input.is_action_just_pressed("reload"):
-			weapon.reload()
-	var aiming := Input.is_action_pressed("aim") and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
-	spring_arm.spring_length = lerpf(spring_arm.spring_length, AIM_SPRING if aiming else NORMAL_SPRING, AIM_LERP * delta)
-	camera.fov = lerpf(camera.fov, AIM_FOV if aiming else NORMAL_FOV, AIM_LERP * delta)
+			current_weapon.reload()
+	var aiming := armed and Input.is_action_pressed("aim") \
+		and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
+	if aiming != _aiming:
+		_aiming = aiming
+		aim_changed.emit(_aiming)
+	spring_arm.spring_length = lerpf(spring_arm.spring_length, AIM_SPRING if _aiming else NORMAL_SPRING, AIM_LERP * delta)
+	camera.fov = lerpf(camera.fov, AIM_FOV if _aiming else NORMAL_FOV, AIM_LERP * delta)
 
 	var input_dir := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
 	# Déplacement relatif à la caméra (pas au corps) : style GTA.
@@ -141,6 +166,30 @@ func _physics_process(delta: float) -> void:
 
 	move_and_slide()
 	_update_animation()
+
+
+func _select_weapon(weapon: HitscanWeapon) -> void:
+	if weapon == current_weapon:
+		return
+	current_weapon = weapon
+	# Modèle 3D en main : montré uniquement pour l'arme active.
+	var mount := skin.get_node_or_null("WeaponMount")
+	if mount:
+		for model in mount.get_children():
+			model.visible = current_weapon != null and model.name == current_weapon.weapon_name.replace("-", "")
+	if current_weapon:
+		weapon_changed.emit(current_weapon.weapon_name, current_weapon.in_mag, current_weapon.reserve)
+	else:
+		weapon_changed.emit("", 0, 0)
+
+
+## Munitions ramassées : dans l'arme en main, sinon partagées entre les deux.
+func add_ammo(amount: int) -> void:
+	if current_weapon:
+		current_weapon.add_reserve(amount)
+	else:
+		weapon_ak.add_reserve(amount / 2)
+		weapon_smg.add_reserve(amount / 2)
 
 
 func _update_animation() -> void:
