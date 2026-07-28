@@ -56,6 +56,7 @@ CAT_COMMERCIAL = {
 # way_id -> (nom de nœud, hauteur forcée en mètres ou None pour les tags OSM)
 LANDMARKS = {
     376558747: ("landmark_grande_poste", 24.0),  # Grande Poste (~24 m réels)
+    26610030: ("landmark_tna", 24.0),  # Théâtre national algérien (square Port-Saïd)
 }
 
 

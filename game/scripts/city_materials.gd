@@ -21,6 +21,13 @@ const LANDMARK_TEXTURES := {
 		"radius": 26.0,
 		"angle_offset": -0.91,
 	},
+	"landmark_tna": {
+		"file": "landmarks/tna.jpg",
+		"size": Vector2(35.0, 24.0),
+		"center": Vector2(430.7, -850.0),
+		"radius": 18.0,
+		"angle_offset": 0.0,
+	},
 }
 const TINTS := {
 	"res": [Color(1.0, 1.0, 1.0), Color(0.96, 0.93, 0.87), Color(0.93, 0.89, 0.82)],

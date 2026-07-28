@@ -11,6 +11,7 @@ var _kill_player_at := -1
 var _restart_at := -1
 var _kill_enemies_at := -1
 var _add_score := 0
+var _cam_yaw_deg := 0.0
 
 
 func _ready() -> void:
@@ -27,6 +28,8 @@ func _ready() -> void:
 			_kill_enemies_at = int(arg.get_slice("=", 1))
 		elif arg.begins_with("--add-score="):
 			_add_score = int(arg.get_slice("=", 1))
+		elif arg.begins_with("--cam-yaw="):
+			_cam_yaw_deg = float(arg.get_slice("=", 1))
 	if _path == "" and _kill_player_at < 0 and _add_score == 0 and _restart_at < 0 \
 			and _kill_enemies_at < 0:
 		set_process(false)
@@ -34,6 +37,10 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	_frame += 1
+	if _frame == 5 and _cam_yaw_deg != 0.0:
+		var player := get_tree().get_first_node_in_group("player")
+		if player:
+			player.camera_pivot.rotate_y(deg_to_rad(_cam_yaw_deg))
 	if _frame == 10 and _add_score > 0:
 		Game.add_score(_add_score)
 		print("[debug] score de test injecté : ", _add_score)

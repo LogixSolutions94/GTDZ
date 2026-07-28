@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3]
+[gd_scene load_steps=25 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="1_player"]
 [ext_resource type="PackedScene" path="res://assets/generated/alger_centre.glb" id="2_city"]
@@ -9,6 +9,16 @@
 [ext_resource type="PackedScene" path="res://scenes/vehicles/jeep.tscn" id="7_jeep"]
 [ext_resource type="Script" path="res://scripts/systems/nav_baker.gd" id="9_navbaker"]
 [ext_resource type="Script" path="res://scripts/systems/wave_spawner.gd" id="10_waves"]
+[ext_resource type="PackedScene" path="res://scenes/vehicles/parked_car.tscn" id="11_parked"]
+[ext_resource type="PackedScene" path="res://assets/props/city-kit-roads/light-curved.glb" id="12_lamp"]
+[ext_resource type="PackedScene" path="res://assets/props/retro-urban-kit/detail-bench.glb" id="13_bench"]
+[ext_resource type="PackedScene" path="res://assets/props/retro-urban-kit/detail-light-traffic.glb" id="14_feu"]
+[ext_resource type="PackedScene" path="res://assets/props/retro-urban-kit/detail-dumpster-closed.glb" id="15_benne"]
+[ext_resource type="PackedScene" path="res://assets/props/city-kit-roads/construction-cone.glb" id="16_cone"]
+[ext_resource type="PackedScene" path="res://assets/props/city-kit-roads/construction-barrier.glb" id="17_barriere"]
+[ext_resource type="PackedScene" path="res://assets/props/survival-kit/structure-canvas.glb" id="18_etal"]
+[ext_resource type="PackedScene" path="res://assets/props/survival-kit/box-large.glb" id="19_caisse"]
+[ext_resource type="PackedScene" path="res://assets/props/survival-kit/barrel.glb" id="20_tonneau"]
 
 [sub_resource type="ProceduralSkyMaterial" id="SkyMat"]
 sky_top_color = Color(0.16, 0.38, 0.68, 1)
@@ -95,6 +105,75 @@ script = ExtResource("9_navbaker")
 
 [node name="WaveSpawner" type="Node3D" parent="."]
 script = ExtResource("10_waves")
+
+[node name="Car1" parent="." instance=ExtResource("11_parked")]
+transform = Transform3D(-0.224, 0, 0.974, 0, 1, 0, -0.974, 0, -0.224, 434, 0.06, 88)
+
+[node name="Car2" parent="." instance=ExtResource("11_parked")]
+transform = Transform3D(-0.224, 0, 0.974, 0, 1, 0, -0.974, 0, -0.224, 437, 0.06, 76)
+
+[node name="Car3" parent="." instance=ExtResource("11_parked")]
+transform = Transform3D(0.224, 0, -0.974, 0, 1, 0, 0.974, 0, 0.224, 440, 0.06, 64)
+
+[node name="Car4" parent="." instance=ExtResource("11_parked")]
+transform = Transform3D(0.224, 0, -0.974, 0, 1, 0, 0.974, 0, 0.224, 423, 0.06, 106)
+
+[node name="Car5" parent="." instance=ExtResource("11_parked")]
+transform = Transform3D(0.974, 0, 0.224, 0, 1, 0, -0.224, 0, 0.974, 407, 0.06, 52)
+
+[node name="Car6" parent="." instance=ExtResource("11_parked")]
+transform = Transform3D(-0.224, 0, 0.974, 0, 1, 0, -0.974, 0, -0.224, 446, 0.06, 98)
+
+[node name="Lamp1" parent="." instance=ExtResource("12_lamp")]
+transform = Transform3D(1.8, 0, 0, 0, 1.8, 0, 0, 0, 1.8, 420, 0.14, 95)
+
+[node name="Lamp2" parent="." instance=ExtResource("12_lamp")]
+transform = Transform3D(-1.8, 0, 0, 0, 1.8, 0, 0, 0, -1.8, 429, 0.14, 101)
+
+[node name="Lamp3" parent="." instance=ExtResource("12_lamp")]
+transform = Transform3D(1.8, 0, 0, 0, 1.8, 0, 0, 0, 1.8, 437, 0.14, 91)
+
+[node name="Lamp4" parent="." instance=ExtResource("12_lamp")]
+transform = Transform3D(-1.8, 0, 0, 0, 1.8, 0, 0, 0, -1.8, 439, 0.14, 71)
+
+[node name="Lamp5" parent="." instance=ExtResource("12_lamp")]
+transform = Transform3D(1.8, 0, 0, 0, 1.8, 0, 0, 0, 1.8, 431, 0.14, 57)
+
+[node name="Lamp6" parent="." instance=ExtResource("12_lamp")]
+transform = Transform3D(-1.8, 0, 0, 0, 1.8, 0, 0, 0, -1.8, 419, 0.14, 56)
+
+[node name="FeuTricolore" parent="." instance=ExtResource("14_feu")]
+transform = Transform3D(2.5, 0, 0, 0, 2.5, 0, 0, 0, 2.5, 442, 0.14, 84)
+
+[node name="Banc1" parent="." instance=ExtResource("13_bench")]
+transform = Transform3D(-0.45, 0, 1.95, 0, 2, 0, -1.95, 0, -0.45, 416, 0.14, 94)
+
+[node name="Banc2" parent="." instance=ExtResource("13_bench")]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 405, 0.14, 74)
+
+[node name="Benne" parent="." instance=ExtResource("15_benne")]
+transform = Transform3D(1.9, 0, 0.62, 0, 2, 0, -0.62, 0, 1.9, 418, 0.14, 60)
+
+[node name="EtalMarche" parent="." instance=ExtResource("18_etal")]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 400, 0.14, 95)
+
+[node name="Caisse1" parent="." instance=ExtResource("19_caisse")]
+transform = Transform3D(1.6, 0, 0, 0, 1.6, 0, 0, 0, 1.6, 398.6, 0.14, 93.4)
+
+[node name="Caisse2" parent="." instance=ExtResource("19_caisse")]
+transform = Transform3D(1.2, 0, 0.9, 0, 1.5, 0, -0.9, 0, 1.2, 402.2, 0.14, 96.6)
+
+[node name="Tonneau" parent="." instance=ExtResource("20_tonneau")]
+transform = Transform3D(1.6, 0, 0, 0, 1.6, 0, 0, 0, 1.6, 401.6, 0.14, 93.6)
+
+[node name="Barriere" parent="." instance=ExtResource("17_barriere")]
+transform = Transform3D(1.6, 0, 1.2, 0, 2, 0, -1.2, 0, 1.6, 430, 0.14, 66)
+
+[node name="Cone1" parent="." instance=ExtResource("16_cone")]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 428.4, 0.14, 64.5)
+
+[node name="Cone2" parent="." instance=ExtResource("16_cone")]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 431.6, 0.14, 67.6)
 
 [node name="HUD" type="CanvasLayer" parent="."]
 

@@ -1,0 +1,48 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/systems/parked_car.gd" id="1_parked"]
+
+[sub_resource type="BoxShape3D" id="CarShape"]
+size = Vector3(1.9, 1.4, 4.2)
+
+[sub_resource type="BoxMesh" id="CarBody"]
+size = Vector3(1.9, 0.8, 4)
+
+[sub_resource type="BoxMesh" id="CarCabin"]
+size = Vector3(1.7, 0.6, 1.8)
+
+[sub_resource type="CylinderMesh" id="CarWheel"]
+top_radius = 0.33
+bottom_radius = 0.33
+height = 0.24
+
+[node name="ParkedCar" type="StaticBody3D"]
+script = ExtResource("1_parked")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
+shape = SubResource("CarShape")
+
+[node name="Body" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.72, 0)
+mesh = SubResource("CarBody")
+
+[node name="Cabin" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.35, 0.35)
+mesh = SubResource("CarCabin")
+
+[node name="WheelFL" type="MeshInstance3D" parent="."]
+transform = Transform3D(0, -1, 0, 1, 0, 0, 0, 0, 1, 0.85, 0.33, -1.3)
+mesh = SubResource("CarWheel")
+
+[node name="WheelFR" type="MeshInstance3D" parent="."]
+transform = Transform3D(0, -1, 0, 1, 0, 0, 0, 0, 1, -0.85, 0.33, -1.3)
+mesh = SubResource("CarWheel")
+
+[node name="WheelRL" type="MeshInstance3D" parent="."]
+transform = Transform3D(0, -1, 0, 1, 0, 0, 0, 0, 1, 0.85, 0.33, 1.3)
+mesh = SubResource("CarWheel")
+
+[node name="WheelRR" type="MeshInstance3D" parent="."]
+transform = Transform3D(0, -1, 0, 1, 0, 0, 0, 0, 1, -0.85, 0.33, 1.3)
+mesh = SubResource("CarWheel")
