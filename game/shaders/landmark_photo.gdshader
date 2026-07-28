@@ -7,6 +7,7 @@ uniform sampler2D roof_tex : source_color, filter_linear_mipmap_anisotropic, rep
 uniform vec2 center_xz = vec2(0.0, 0.0);   // centre du bâtiment (coords monde XZ)
 uniform float radius_m = 26.0;             // rayon moyen de la façade
 uniform float angle_offset = 0.0;          // calage horizontal (radians)
+uniform float base_y = 0.0;                // altitude du pied du bâtiment (relief)
 uniform vec2 photo_size_m = vec2(46.0, 23.7);
 uniform float roof_size_m = 8.0;
 
@@ -23,7 +24,7 @@ void fragment() {
 		col = texture(roof_tex, world_pos.xz / roof_size_m).rgb;
 	} else {
 		float ang = atan(world_pos.x - center_xz.x, world_pos.z - center_xz.y) + angle_offset;
-		vec2 uv = vec2(ang * radius_m / photo_size_m.x, -world_pos.y / photo_size_m.y);
+		vec2 uv = vec2(ang * radius_m / photo_size_m.x, -(world_pos.y - base_y) / photo_size_m.y);
 		col = texture(photo, uv).rgb;
 	}
 	ALBEDO = col;

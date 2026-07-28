@@ -1,0 +1,53 @@
+[gd_scene load_steps=7 format=3]
+
+[sub_resource type="BoxShape3D" id="AbriShape"]
+size = Vector3(3.2, 2.4, 1.4)
+
+[sub_resource type="StandardMaterial3D" id="VertMat"]
+albedo_color = Color(0.09, 0.28, 0.22, 1)
+roughness = 0.6
+
+[sub_resource type="StandardMaterial3D" id="VitreMat"]
+albedo_color = Color(0.55, 0.62, 0.68, 0.9)
+metallic = 0.3
+roughness = 0.2
+
+[sub_resource type="BoxMesh" id="Panneau"]
+size = Vector3(3, 2.1, 0.08)
+
+[sub_resource type="BoxMesh" id="Toit"]
+size = Vector3(3.3, 0.09, 1.5)
+
+[sub_resource type="BoxMesh" id="Banc"]
+size = Vector3(2.6, 0.09, 0.45)
+
+[node name="BusStop" type="StaticBody3D"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, -0.2)
+shape = SubResource("AbriShape")
+
+[node name="Fond" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.15, -0.6)
+mesh = SubResource("Panneau")
+material_override = SubResource("VitreMat")
+
+[node name="Toit" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.25, -0.1)
+mesh = SubResource("Toit")
+material_override = SubResource("VertMat")
+
+[node name="Poteau1" type="MeshInstance3D" parent="."]
+transform = Transform3D(0.04, 0, 0, 0, 1.05, 0, 0, 0, 1.5, 1.55, 1.1, 0.5)
+mesh = SubResource("Panneau")
+material_override = SubResource("VertMat")
+
+[node name="Poteau2" type="MeshInstance3D" parent="."]
+transform = Transform3D(0.04, 0, 0, 0, 1.05, 0, 0, 0, 1.5, -1.55, 1.1, 0.5)
+mesh = SubResource("Panneau")
+material_override = SubResource("VertMat")
+
+[node name="Banc" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.55, -0.35)
+mesh = SubResource("Banc")
+material_override = SubResource("VertMat")

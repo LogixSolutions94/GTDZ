@@ -54,7 +54,14 @@ func _spawn_enemy(point: Vector3) -> void:
 	var enemy := ENEMY_SCENE.instantiate()
 	enemy.lose_target_distance = 1000.0  # mode chasse : ne lâche jamais le joueur
 	add_child(enemy)
-	enemy.global_position = point + Vector3(randf_range(-2, 2), 0, randf_range(-2, 2))
+	var pos := point + Vector3(randf_range(-2, 2), 0, randf_range(-2, 2))
+	# Pose sur le relief réel (les points de spawn sont définis à plat).
+	var origin := Vector3(pos.x, 200.0, pos.z)
+	var hit := get_world_3d().direct_space_state.intersect_ray(
+		PhysicsRayQueryParameters3D.create(origin, origin + Vector3.DOWN * 500.0))
+	if hit:
+		pos.y = hit.position.y + 0.3
+	enemy.global_position = pos
 	enemy.get_node("Health").died.connect(_on_enemy_died)
 	_alive += 1
 	# Les ennemis de vague chassent d'emblée (pas de patrouille passive).

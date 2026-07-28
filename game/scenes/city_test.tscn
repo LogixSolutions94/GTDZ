@@ -1,4 +1,4 @@
-[gd_scene load_steps=27 format=3]
+[gd_scene load_steps=31 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="1_player"]
 [ext_resource type="PackedScene" path="res://assets/generated/alger_centre.glb" id="2_city"]
@@ -21,6 +21,10 @@
 [ext_resource type="PackedScene" path="res://assets/props/survival-kit/barrel.glb" id="20_tonneau"]
 [ext_resource type="Texture2D" path="res://assets/textures/sky/kloofendal_48d_partly_cloudy_puresky_2k.hdr" id="21_sky"]
 [ext_resource type="Script" path="res://scripts/systems/pedestrian_spawner.gd" id="22_pietons"]
+[ext_resource type="PackedScene" path="res://scenes/props/statue_emir.tscn" id="23_statue"]
+[ext_resource type="PackedScene" path="res://scenes/props/bus_stop.tscn" id="24_abribus"]
+[ext_resource type="PackedScene" path="res://assets/props/city-kit-roads/road-crossing.glb" id="25_passage"]
+[ext_resource type="Script" path="res://scripts/systems/ground_snapper.gd" id="26_snapper"]
 
 [sub_resource type="PanoramaSkyMaterial" id="SkyMat"]
 panorama = ExtResource("21_sky")
@@ -51,17 +55,13 @@ cell_size = 0.25
 cell_height = 0.25
 agent_height = 1.8
 agent_radius = 0.6
-filter_baking_aabb = AABB(-250, -5, -250, 500, 40, 500)
+filter_baking_aabb = AABB(-250, -15, -250, 500, 130, 500)
 filter_baking_aabb_offset = Vector3(410, 0, 80)
 
-[sub_resource type="StandardMaterial3D" id="GroundMat"]
-albedo_color = Color(0.82, 0.8, 0.76, 1)
-albedo_texture = ExtResource("4_paving")
-roughness = 1.0
-uv1_triplanar = true
-uv1_world_triplanar = true
-uv1_scale = Vector3(0.18, 0.18, 0.18)
-texture_filter = 5
+[sub_resource type="StandardMaterial3D" id="MerMat"]
+albedo_color = Color(0.09, 0.29, 0.42, 1)
+metallic = 0.35
+roughness = 0.12
 
 [node name="CityTest" type="Node3D"]
 
@@ -75,11 +75,8 @@ light_energy = 1.25
 shadow_enabled = true
 directional_shadow_max_distance = 150.0
 
-[node name="Ground" type="CSGBox3D" parent="." groups=["navsource"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
-use_collision = true
-size = Vector3(3000, 1, 3000)
-material = SubResource("GroundMat")
+[node name="GroundSnapper" type="Node3D" parent="."]
+script = ExtResource("26_snapper")
 
 [node name="AlgerCentre" parent="." instance=ExtResource("2_city") groups=["navsource"]]
 script = ExtResource("3_citymat")
@@ -110,6 +107,38 @@ script = ExtResource("10_waves")
 
 [node name="PedestrianSpawner" type="Node3D" parent="."]
 script = ExtResource("22_pietons")
+
+[node name="Mer" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1780, -0.18, 0)
+size = Vector3(1200, 0.4, 3000)
+material = SubResource("MerMat")
+
+[node name="StatueEmir" parent="." instance=ExtResource("23_statue")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 280, 0.15, -297)
+
+[node name="Abribus1" parent="." instance=ExtResource("24_abribus")]
+transform = Transform3D(-0.224, 0, 0.974, 0, 1, 0, -0.974, 0, -0.224, 436, 0.14, 99)
+
+[node name="Abribus2" parent="." instance=ExtResource("24_abribus")]
+transform = Transform3D(0.974, 0, 0.224, 0, 1, 0, -0.224, 0, 0.974, 286, 0.14, -286)
+
+[node name="Abribus3" parent="." instance=ExtResource("24_abribus")]
+transform = Transform3D(0.974, 0, -0.224, 0, 1, 0, 0.224, 0, 0.974, 392, 0.14, 56)
+
+[node name="Passage1" parent="." instance=ExtResource("25_passage")]
+transform = Transform3D(-1.12, 0, 4.87, 0, 5, 0, -4.87, 0, -1.12, 426, 0.08, 70)
+
+[node name="Passage2" parent="." instance=ExtResource("25_passage")]
+transform = Transform3D(4.87, 0, 1.12, 0, 5, 0, -1.12, 0, 4.87, 404, 0.08, 93)
+
+[node name="Chantier2Barriere" parent="." instance=ExtResource("17_barriere")]
+transform = Transform3D(1.9, 0, 0.62, 0, 2, 0, -0.62, 0, 1.9, 273, 0.14, -306)
+
+[node name="Chantier2Cone1" parent="." instance=ExtResource("16_cone")]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 271, 0.14, -304)
+
+[node name="Chantier2Cone2" parent="." instance=ExtResource("16_cone")]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 275.4, 0.14, -307.8)
 
 [node name="Car1" parent="." instance=ExtResource("11_parked")]
 transform = Transform3D(-0.224, 0, 0.974, 0, 1, 0, -0.974, 0, -0.224, 434, 0.06, 88)

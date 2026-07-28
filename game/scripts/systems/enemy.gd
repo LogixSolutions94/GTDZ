@@ -121,10 +121,15 @@ func _chase(delta: float) -> void:
 	if dist < attack_range and _has_line_of_sight():
 		state = State.ATTACK
 		return
-	agent.target_position = _player.global_position
-	var next := agent.get_next_path_position()
-	if agent.is_navigation_finished() or next.distance_to(global_position) < 0.05:
-		next = _player.global_position  # repli si navmesh indisponible
+	var next := _player.global_position
+	# Ne consulte le pathfinding que si le navmesh est prêt ET que la cible est
+	# dans la zone naviguée (sinon requête instable côté moteur).
+	var in_nav_zone := absf(next.x - 410.0) < 240.0 and absf(next.z - 80.0) < 240.0
+	if in_nav_zone and NavigationServer3D.map_get_iteration_id(agent.get_navigation_map()) > 0:
+		agent.target_position = _player.global_position
+		var path_next := agent.get_next_path_position()
+		if not agent.is_navigation_finished() and path_next.distance_to(global_position) >= 0.05:
+			next = path_next
 	_move_towards(next, chase_speed, delta)
 
 

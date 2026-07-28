@@ -1,0 +1,79 @@
+[gd_scene load_steps=8 format=3]
+
+[sub_resource type="BoxShape3D" id="StatueShape"]
+size = Vector3(3.2, 5, 3.2)
+
+[sub_resource type="StandardMaterial3D" id="StoneMat"]
+albedo_color = Color(0.56, 0.53, 0.48, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="BronzeMat"]
+albedo_color = Color(0.23, 0.19, 0.13, 1)
+metallic = 0.55
+roughness = 0.55
+
+[sub_resource type="BoxMesh" id="Socle"]
+size = Vector3(3, 0.4, 3)
+
+[sub_resource type="BoxMesh" id="Piedestal"]
+size = Vector3(1.6, 1.8, 2.4)
+
+[sub_resource type="CapsuleMesh" id="Corps"]
+radius = 0.35
+height = 1.9
+
+[sub_resource type="CylinderMesh" id="Jambe"]
+top_radius = 0.08
+bottom_radius = 0.08
+height = 0.75
+
+[node name="StatueEmir" type="StaticBody3D"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, 0)
+shape = SubResource("StatueShape")
+
+[node name="Socle" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
+mesh = SubResource("Socle")
+material_override = SubResource("StoneMat")
+
+[node name="Piedestal" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.3, 0)
+mesh = SubResource("Piedestal")
+material_override = SubResource("StoneMat")
+
+[node name="Cheval" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, 2.75, 0)
+mesh = SubResource("Corps")
+material_override = SubResource("BronzeMat")
+
+[node name="Encolure" type="MeshInstance3D" parent="."]
+transform = Transform3D(0.8, 0, 0, 0, 0.57, -0.57, 0, 0.57, 0.57, 0, 3.15, -0.85)
+mesh = SubResource("Jambe")
+material_override = SubResource("BronzeMat")
+
+[node name="JambeAV1" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.22, 2.05, -0.6)
+mesh = SubResource("Jambe")
+material_override = SubResource("BronzeMat")
+
+[node name="JambeAV2" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.22, 2.05, -0.6)
+mesh = SubResource("Jambe")
+material_override = SubResource("BronzeMat")
+
+[node name="JambeAR1" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.22, 2.05, 0.6)
+mesh = SubResource("Jambe")
+material_override = SubResource("BronzeMat")
+
+[node name="JambeAR2" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.22, 2.05, 0.6)
+mesh = SubResource("Jambe")
+material_override = SubResource("BronzeMat")
+
+[node name="Cavalier" type="MeshInstance3D" parent="."]
+transform = Transform3D(0.6, 0, 0, 0, 0.6, 0, 0, 0, 0.6, 0, 3.65, 0.15)
+mesh = SubResource("Corps")
+material_override = SubResource("BronzeMat")

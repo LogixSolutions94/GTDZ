@@ -15,11 +15,15 @@ func _ready() -> void:
 
 func _spawn_when_ready() -> void:
 	var map := get_world_3d().navigation_map
-	# Attend que le navmesh soit baké (quelques secondes en asynchrone).
-	for attempt in 30:
+	# Attend que le navmesh soit baké (requête sûre : jamais map_get_random_point
+	# sur une carte en cours de bake, ça peut faire tomber le moteur).
+	for attempt in 60:
 		await get_tree().create_timer(1.0).timeout
-		if NavigationServer3D.map_get_random_point(map, 1, false) != Vector3.ZERO:
+		if NavigationServer3D.map_get_iteration_id(map) > 0:
 			break
+	if NavigationServer3D.map_get_iteration_id(map) == 0:
+		print("[piétons] navmesh indisponible, abandon")
+		return
 	var spawned := 0
 	var tries := 0
 	while spawned < count and tries < count * 20:

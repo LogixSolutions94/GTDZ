@@ -154,6 +154,47 @@ def main() -> int:
     rotation = trimesh.transformations.rotation_matrix(-np.pi / 2, [1, 0, 0])
     scene = trimesh.Scene()
 
+    # --- Relief réel (SRTM, voir fetch_dem.py) ---
+    dem_h = None
+    dem_path = DATA_DIR / f"{args.district}_dem.json"
+    if dem_path.exists():
+        dem_data = json.loads(dem_path.read_text(encoding="utf-8"))
+        dem_lats = np.array(dem_data["lats"])
+        dem_lons = np.array(dem_data["lons"])
+        dem_grid = np.array(dem_data["grid"], dtype=float)
+
+        def dem_h(x, y):
+            lat = lat0 + np.asarray(y, dtype=float) / M_PER_DEG_LAT
+            lon = lon0 + np.asarray(x, dtype=float) / m_per_deg_lon
+            fi = np.clip((lat - dem_lats[0]) / (dem_lats[-1] - dem_lats[0]) * (len(dem_lats) - 1), 0, len(dem_lats) - 1.001)
+            fj = np.clip((lon - dem_lons[0]) / (dem_lons[-1] - dem_lons[0]) * (len(dem_lons) - 1), 0, len(dem_lons) - 1.001)
+            i0 = fi.astype(int)
+            j0 = fj.astype(int)
+            di = fi - i0
+            dj = fj - j0
+            h = (dem_grid[i0, j0] * (1 - di) * (1 - dj) + dem_grid[i0 + 1, j0] * di * (1 - dj)
+                 + dem_grid[i0, j0 + 1] * (1 - di) * dj + dem_grid[i0 + 1, j0 + 1] * di * dj)
+            return np.maximum(h, 0.5)  # jamais sous le niveau des quais
+
+        # Maillage de terrain (collision de base de toute la zone).
+        xs = (dem_lons - lon0) * m_per_deg_lon
+        ys = (dem_lats - lat0) * M_PER_DEG_LAT
+        gx, gy = np.meshgrid(xs, ys)
+        gz = np.maximum(dem_grid, 0.5) - 0.15
+        verts = np.column_stack([gx.ravel(), gy.ravel(), gz.ravel()])
+        n = len(xs)
+        faces = []
+        for i in range(n - 1):
+            for j in range(n - 1):
+                a = i * n + j
+                faces.append([a, a + n, a + 1])
+                faces.append([a + 1, a + n, a + n + 1])
+        terrain = trimesh.Trimesh(vertices=verts, faces=np.array(faces), process=False)
+        terrain.apply_transform(rotation)
+        terrain.visual = trimesh.visual.TextureVisuals(material=make_material((0.62, 0.58, 0.52)))
+        scene.add_geometry(terrain, node_name="terrain-col", geom_name="terrain-col")
+        print(f"  terrain : relief réel {dem_grid.min():.0f} à {dem_grid.max():.0f} m")
+
     # --- Bâtiments, répartis par catégorie OSM x variation ---
     # Noms de nœuds "b_<cat><var>-col" : la scène Godot s'en sert pour assigner
     # les matériaux à textures (voir game/scripts/city_materials.gd).
@@ -173,10 +214,12 @@ def main() -> int:
             continue
         building_polys.append(polygon)
         try:
+            base_h = float(dem_h(polygon.centroid.x, polygon.centroid.y)) if dem_h is not None else 0.0
             if way["id"] in LANDMARKS:
                 lm_name, lm_height = LANDMARKS[way["id"]]
                 height = lm_height if lm_height else building_height(way["tags"])
-                mesh = trimesh.creation.extrude_polygon(polygon, height)
+                mesh = trimesh.creation.extrude_polygon(polygon, height + 6.0)
+                mesh.apply_translation((0.0, 0.0, base_h - 6.0))
                 mesh.unmerge_vertices()  # normales plates (éclairage et shaders corrects)
                 mesh.apply_transform(rotation)
                 mesh.visual = trimesh.visual.TextureVisuals(material=make_material(PALETTE[0]))
@@ -184,7 +227,9 @@ def main() -> int:
                 scene.add_geometry(mesh, node_name=lname, geom_name=lname)
                 print(f"  {lname} : nœud monument dédié (way {way['id']}, h={height} m)")
                 continue
-            mesh = trimesh.creation.extrude_polygon(polygon, building_height(way["tags"]))
+            # Soubassement de 6 m : les bâtiments tiennent à flanc de pente.
+            mesh = trimesh.creation.extrude_polygon(polygon, building_height(way["tags"]) + 6.0)
+            mesh.apply_translation((0.0, 0.0, base_h - 6.0))
             key = (building_category(way["tags"]), way["id"] % len(PALETTE))
             buckets.setdefault(key, []).append(mesh)
         except Exception:
@@ -213,7 +258,7 @@ def main() -> int:
         ribbons.append(line.buffer(width / 2.0, cap_style=2, join_style=2))
         walk_ribbons.append(line.buffer(width / 2.0 + SIDEWALK_EXTRA, cap_style=2, join_style=2))
 
-    def polys_to_node(geometry, height: float, color: tuple, node: str) -> int:
+    def polys_to_node(geometry, height: float, color: tuple, node: str, drape: bool = False) -> int:
         geoms = geometry.geoms if hasattr(geometry, "geoms") else [geometry]
         meshes_out = []
         for geom in geoms:
@@ -226,6 +271,12 @@ def main() -> int:
         if not meshes_out:
             return 0
         combined_out = trimesh.util.concatenate(meshes_out)
+        if drape and dem_h is not None:
+            # Subdivise puis épouse le relief (routes qui descendent vers la mer).
+            v, f = trimesh.remesh.subdivide_to_size(
+                combined_out.vertices, combined_out.faces, max_edge=25.0, max_iter=8)
+            combined_out = trimesh.Trimesh(vertices=v, faces=f, process=False)
+            combined_out.vertices[:, 2] += dem_h(combined_out.vertices[:, 0], combined_out.vertices[:, 1])
         combined_out.unmerge_vertices()
         combined_out.apply_transform(rotation)
         combined_out.visual = trimesh.visual.TextureVisuals(material=make_material(color))
@@ -253,7 +304,7 @@ def main() -> int:
         import random
         random.seed(42)  # arbres reproductibles d'une génération à l'autre
         parks_union = unary_union(park_polys)
-        n_parks = polys_to_node(parks_union, PARK_HEIGHT, PARK_COLOR, "parks")
+        n_parks = polys_to_node(parks_union, PARK_HEIGHT, PARK_COLOR, "parks-col", drape=True)
         trunks, foliages = [], []
         total_trees = 0
         for poly in park_polys:
@@ -269,12 +320,13 @@ def main() -> int:
                 p = Point(random.uniform(minx, maxx), random.uniform(miny, maxy))
                 if not poly.contains(p):
                     continue
+                tree_h = float(dem_h(p.x, p.y)) - 0.3 if dem_h is not None else 0.0
                 trunk = trimesh.creation.cylinder(radius=0.15, height=2.4, sections=6)
-                trunk.apply_translation((p.x, p.y, 1.2))
+                trunk.apply_translation((p.x, p.y, 1.2 + tree_h))
                 trunks.append(trunk)
                 foliage = trimesh.creation.icosphere(subdivisions=1, radius=1.35)
                 foliage.apply_scale((1.0, 1.0, 1.25))
-                foliage.apply_translation((p.x, p.y, 3.3))
+                foliage.apply_translation((p.x, p.y, 3.3 + tree_h))
                 foliages.append(foliage)
                 placed += 1
                 total_trees += 1
@@ -290,13 +342,13 @@ def main() -> int:
     n_road_polys = 0
     if ribbons:
         roads_union = unary_union(ribbons)
-        n_road_polys = polys_to_node(roads_union, ROAD_HEIGHT, ROAD_COLOR, "roads")
+        n_road_polys = polys_to_node(roads_union, ROAD_HEIGHT, ROAD_COLOR, "roads-col", drape=True)
         # Trottoirs : ruban élargi moins la chaussée, moins l'emprise des bâtiments.
         # Le suffixe -col donne les bordures physiques et alimente le navmesh.
         sidewalks = unary_union(walk_ribbons).difference(roads_union)
         if building_polys:
             sidewalks = sidewalks.difference(unary_union(building_polys))
-        n_walk = polys_to_node(sidewalks.simplify(0.05), SIDEWALK_HEIGHT, SIDEWALK_COLOR, "sidewalks-col")
+        n_walk = polys_to_node(sidewalks.simplify(0.05), SIDEWALK_HEIGHT, SIDEWALK_COLOR, "sidewalks-col", drape=True)
         print(f"  trottoirs : {n_walk} polygones")
 
     # --- Spawn suggéré : nœud de route le plus proche du centre ---

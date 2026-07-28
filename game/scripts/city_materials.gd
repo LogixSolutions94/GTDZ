@@ -20,6 +20,7 @@ const LANDMARK_TEXTURES := {
 		"center": Vector2(410.8, 82.9),
 		"radius": 26.0,
 		"angle_offset": -0.91,
+		"base_y": 30.4,
 	},
 	"landmark_tna": {
 		"file": "landmarks/tna.jpg",
@@ -27,6 +28,7 @@ const LANDMARK_TEXTURES := {
 		"center": Vector2(430.7, -850.0),
 		"radius": 18.0,
 		"angle_offset": 0.0,
+		"base_y": 30.8,
 	},
 }
 const TINTS := {
@@ -63,8 +65,8 @@ func _apply_material(mesh: MeshInstance3D) -> void:
 	if n == "sidewalks":
 		_apply_flat_material(mesh, "paving.jpg", 3.0, Color(0.95, 0.93, 0.9), Color(0.62, 0.6, 0.56))
 		return
-	if n == "parks" or n == "tree_trunks" or n == "tree_foliage":
-		return  # couleurs du GLB (pelouse, bois, feuillage) déjà correctes
+	if n in ["parks", "tree_trunks", "tree_foliage", "terrain"]:
+		return  # couleurs du GLB (pelouse, bois, feuillage, terrain) déjà correctes
 	if n.begins_with("landmark_"):
 		_apply_landmark_material(mesh, n)
 		return
@@ -118,6 +120,7 @@ func _apply_landmark_material(mesh: MeshInstance3D, n: String) -> void:
 		mat.set_shader_parameter("center_xz", info.get("center", Vector2.ZERO))
 		mat.set_shader_parameter("radius_m", info.get("radius", 25.0))
 		mat.set_shader_parameter("angle_offset", info.get("angle_offset", 0.0))
+		mat.set_shader_parameter("base_y", info.get("base_y", 0.0))
 		mat.set_shader_parameter("roof_tex", roof if roof != null else photo)
 		mesh.material_override = mat
 	elif _plaster != null:

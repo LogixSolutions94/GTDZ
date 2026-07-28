@@ -55,6 +55,9 @@ func _physics_process(delta: float) -> void:
 
 func _pick_new_target() -> void:
 	var map := get_world_3d().navigation_map
+	if NavigationServer3D.map_get_iteration_id(map) == 0:
+		agent.target_position = global_position + Vector3(randf_range(-15, 15), 0, randf_range(-15, 15))
+		return
 	for i in 8:
 		var point := NavigationServer3D.map_get_random_point(map, 1, false)
 		if point != Vector3.ZERO and point.distance_to(global_position) < wander_radius:
